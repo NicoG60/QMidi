@@ -1,0 +1,11 @@
+#ifndef QMIDI_P_H
+#define QMIDI_P_H
+
+#include <private/qobject_p.h>
+
+class QMidiPrivate : public QObjectPrivate
+{
+public:
+};
+
+#endif // QMIDI_P_H
