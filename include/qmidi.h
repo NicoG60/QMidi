@@ -49,6 +49,8 @@ public:
 
 public:
     QMidi(QObject* parent = nullptr);
+    QMidi(Api api, QObject* parent = nullptr);
+    QMidi(Api api, const QString& clientName, QObject* parent = nullptr);
     ~QMidi();
 
     Api api() const;
@@ -56,6 +58,7 @@ public:
 
     QString apiName() const;
 
+    bool hasError() const;
     MidiError error() const;
     QString errorString() const;
 
@@ -72,13 +75,15 @@ public:
     bool isOpen();
     Directions openedDirection();
 
+    void close();
+
+    QList<QMidiInterface> availableInputInterfaces();
+    QList<QMidiInterface> availableOutputInterfaces();
+    QList<QMidiInterface> availableInterfaces();
+
+    QMidiInterface createVirtualInterface(const QString& name);
+
     static QList<Api> availableApi();
-
-    static QList<QMidiInterface> availableInputInterfaces();
-    static QList<QMidiInterface> availableOutputInterfaces();
-    static QList<QMidiInterface> availableInterfaces();
-
-    static QMidiInterface createVirtualInterface(const QString& name);
 
     static QString apiToString(Api api);
     static QString errorToString(MidiError err);

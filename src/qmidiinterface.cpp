@@ -40,12 +40,17 @@ bool QMidiInterface::isValid() const
     return d->index != -1;
 }
 
+bool QMidiInterface::isVirtual() const
+{
+    return d->index < -1;
+}
+
 int QMidiInterface::index() const
 {
     return d->index;
 }
 
-QMidiInterface::Api QMidiInterface::api() const
+QMidi::Api QMidiInterface::api() const
 {
     return d->api;
 }
@@ -53,4 +58,9 @@ QMidiInterface::Api QMidiInterface::api() const
 QString QMidiInterface::name() const
 {
     return d->name;
+}
+
+QMidi::Directions QMidiInterface::directions() const
+{
+    return d->direction;
 }

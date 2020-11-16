@@ -15,7 +15,8 @@ public:
     QMidiInterfacePrivate& operator=(QMidiInterfacePrivate&&) = default;
 
     int index = -1;
-    QMidi::Api api = QMidi::UnknownApi;
+    QMidi::Api api = QMidi::UnspecifiedApi;
+    QMidi::Directions direction = QMidi::UnknownDirection;
     QString name;
 };
 

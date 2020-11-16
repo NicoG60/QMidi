@@ -27,9 +27,11 @@ public:
     int        index() const;
     QMidi::Api api()  const;
     QString    name() const;
+    QMidi::Directions directions() const;
 
 private:
     friend class QMidi;
+    friend class QMidiPrivate;
     QScopedPointer<QMidiInterfacePrivate> d;
 };
 

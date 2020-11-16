@@ -16,6 +16,7 @@ SOURCES += \
     qmidiinterface.cpp
 
 include($$PWD/../include/include.pri)
+include($$PWD/../third_party/third_party.pri)
 
 OBJECTS_DIR = tmp
 MOC_DIR = tmp
