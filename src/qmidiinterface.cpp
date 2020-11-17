@@ -31,6 +31,19 @@ QMidiInterface& QMidiInterface::operator=(QMidiInterface&& move)
 
 QMidiInterface::~QMidiInterface() {}
 
+bool QMidiInterface::operator==(const QMidiInterface& other) const
+{
+    return api() == other.api() &&
+            index() == other.index() &&
+            directions() == other.directions() &&
+            name() == other.name();
+}
+
+bool QMidiInterface::operator!=(const QMidiInterface& other) const
+{
+    return !(*this == other);
+}
+
 void QMidiInterface::swap(QMidiInterface& other) noexcept
 {
     qSwap(d, other.d);

@@ -18,6 +18,9 @@ public:
     QMidiInterface& operator=(QMidiInterface&& move);
     ~QMidiInterface();
 
+    bool operator==(const QMidiInterface& other) const;
+    bool operator!=(const QMidiInterface& other) const;
+
     void swap(QMidiInterface& other) noexcept;
 
     bool isValid() const;
