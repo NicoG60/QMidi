@@ -11,10 +11,14 @@ class QMidiPrivate : public QObjectPrivate
 public:
     QMidiPrivate();
 
-    void init(QMidi::Api api = QMidi::UnspecifiedApi, const QString clientName = {});
+    void init(QMidi::Api api = QMidi::UnspecifiedApi, QString clientName = {});
 
-    QMidiInterface interface(RtMidi& dev, unsigned int port);
-    QMidiInterface makeVirtual(const QString& name);
+    QMidiInterface interface(RtMidi& dev, QMidi::Direction dir, unsigned int port);
+    QMidiInterface makeVirtual(QString name = {});
+
+    void send(const QByteArray& msg);
+    void send(quint8 status, quint8 chan, quint8 data1);
+    void send(quint8 status, quint8 chan, quint8 data1, quint8 data2);
 
     bool hasError;
 

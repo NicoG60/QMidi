@@ -1,5 +1,6 @@
 #include <qmidiinterface.h>
 #include <qmidiinterface_p.h>
+#include <QDebug>
 
 QMidiInterface::QMidiInterface() :
     d(new QMidiInterfacePrivate)
@@ -63,4 +64,11 @@ QString QMidiInterface::name() const
 QMidi::Directions QMidiInterface::directions() const
 {
     return d->direction;
+}
+
+QDebug operator<<(QDebug debug, const QMidiInterface& iface)
+{
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "QMidiInterface(" << iface.name() << ", " << iface.directions() << ")";
+    return debug;
 }

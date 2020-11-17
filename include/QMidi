@@ -1,0 +1,6 @@
+#ifndef QMIDI
+#define QMIDI
+
+#include "qmidi.h"
+
+#endif // QMIDI

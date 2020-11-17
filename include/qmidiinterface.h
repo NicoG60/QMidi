@@ -29,6 +29,8 @@ public:
     QString    name() const;
     QMidi::Directions directions() const;
 
+    friend QDebug operator<<(QDebug debug, const QMidiInterface& iface);
+
 private:
     friend class QMidi;
     friend class QMidiPrivate;

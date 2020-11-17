@@ -25,3 +25,8 @@ DESTDIR = lib
 HEADERS += \
     qmidi_p.h \
     qmidiinterface_p.h
+
+macx {
+    DEFINES += __MACOSX_CORE__
+    LIBS+= -framework CoreMIDI -framework CoreAudio -framework CoreFoundation
+}

@@ -1,0 +1,6 @@
+#ifndef QMIDIINTERFACE
+#define QMIDIINTERFACE
+
+#include "qmidiinterface.h"
+
+#endif // QMIDIINTERFACE

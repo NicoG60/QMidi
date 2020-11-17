@@ -1,7 +1,152 @@
 #include <qmidi.h>
 
 #include "qmidi_p.h"
+#include "qmidiinterface_p.h"
+
 #include <QDebug>
+
+QMidiPrivate::QMidiPrivate() :
+    QObjectPrivate()
+{
+
+}
+
+void QMidiPrivate::init(QMidi::Api api, QString clientName)
+{
+    try
+    {
+        if(clientName.isEmpty())
+            clientName = "QMidi Client";
+
+        midiIn.reset(new RtMidiIn(static_cast<RtMidi::Api>(api), clientName.toStdString()));
+        midiOut.reset(new RtMidiOut(static_cast<RtMidi::Api>(api), clientName.toStdString()));
+
+        this->hasError = false;
+        this->api = static_cast<QMidi::Api>(midiIn->getCurrentApi());
+        this->clientName = clientName;
+        this->openedDir = QMidi::UnknownDirection;
+        this->error = QMidi::UnspecifiedError;
+    }
+    catch(RtMidiError& e)
+    {
+        this->hasError = true;
+        this->error = static_cast<QMidi::MidiError>(e.getType());
+        this->errorString = QString::fromStdString(e.getMessage());
+        qWarning() << "QMidi:" << errorString;
+    }
+}
+
+QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidi::Direction dir, unsigned int port)
+{
+    if(hasError)
+    {
+        qWarning() << "QMidi: Query for interface while error occured";
+        return {};
+    }
+
+    QMidiInterface i;
+    i.d->api       = api;
+    i.d->direction = dir;
+    i.d->name      = QString::fromStdString(dev.getPortName(port));
+    i.d->index     = port;
+
+    return i;
+}
+
+QMidiInterface QMidiPrivate::makeVirtual(QString name)
+{
+    if(name.isEmpty())
+        name = "QMidi Virtual Port";
+
+    QMidiInterface i;
+    i.d->api       = api;
+    i.d->direction = QMidi::Input | QMidi::Output;
+    i.d->name      = name;
+    i.d->index     = -2;
+
+    return i;
+}
+
+void QMidiPrivate::send(const QByteArray& msg)
+{
+    if(!openedDir.testFlag(QMidi::Output))
+    {
+        qWarning() << "QMidi: try to send data with input only object. No effect";
+        return;
+    }
+
+    midiOut->sendMessage(reinterpret_cast<const unsigned char*>(msg.data()), msg.size());
+}
+
+void QMidiPrivate::send(quint8 status, quint8 chan, quint8 data1)
+{
+    static std::vector<unsigned char> v(2, 0);
+
+    if(!openedDir.testFlag(QMidi::Output))
+    {
+        qWarning() << "QMidi: try to send data with input only object. No effect";
+        return;
+    }
+
+    if(chan > 16)
+    {
+        qWarning() <<  "QMidi: Send a message to a channel over 16. No effect.";
+        return;
+    }
+
+    if(data1 > 0x7F)
+    {
+        qWarning() <<  "QMidi: data1 i too large. No effect";
+        return;
+    }
+
+    v[0] = status | chan;
+    v[1] = data1;
+
+    midiOut->sendMessage(&v);
+}
+
+void QMidiPrivate::send(quint8 status, quint8 chan, quint8 data1, quint8 data2)
+{
+    static std::vector<unsigned char> v(3, 0);
+
+    if(!openedDir.testFlag(QMidi::Output))
+    {
+        qWarning() << "QMidi: try to send data with input only object. No effect";
+        return;
+    }
+
+    if(chan > 16)
+    {
+        qWarning() <<  "QMidi: Send a message to a channel over 16. No effect.";
+        return;
+    }
+
+    if(data1 > 0x7F)
+    {
+        qWarning() <<  "QMidi: data1 i too large. No effect";
+        return;
+    }
+
+    if(data2 > 0x7F)
+    {
+        qWarning() <<  "QMidi: data2 i too large. No effect";
+        return;
+    }
+
+    v[0] = status | chan;
+    v[1] = data1;
+    v[2] = data2;
+
+    midiOut->sendMessage(&v);
+}
+
+
+
+// =============================================================================
+
+
+
 
 QMidi::QMidi(QObject* parent) :
     QObject(*new QMidiPrivate, parent)
@@ -218,7 +363,9 @@ QList<QMidiInterface> QMidi::availableInputInterfaces()
 
     unsigned int count = d->midiIn->getPortCount();
     for(unsigned int i = 0; i < count; i++)
-        r << d->interface(*d->midiIn, i);
+        r << d->interface(*d->midiIn, Input, i);
+
+    return r;
 }
 
 QList<QMidiInterface> QMidi::availableOutputInterfaces()
@@ -229,7 +376,9 @@ QList<QMidiInterface> QMidi::availableOutputInterfaces()
 
     unsigned int count = d->midiOut->getPortCount();
     for(unsigned int i = 0; i < count; i++)
-        r << d->interface(*d->midiOut, i);
+        r << d->interface(*d->midiOut, Output, i);
+
+    return r;
 }
 
 QList<QMidiInterface> QMidi::availableInterfaces()
@@ -257,10 +406,72 @@ QList<QMidi::Api> QMidi::availableApi()
 
 QString QMidi::apiToString(Api api)
 {
-
+    switch(api)
+    {
+    case UnspecifiedApi: return QStringLiteral("Unspecified");
+    case CoreMidi:       return QStringLiteral("Apple Core Midi");
+    case ALSA:           return QStringLiteral("ALSA");
+    case JACK:           return QStringLiteral("JACK");
+    case WindowsMM:      return QStringLiteral("Windows Multimedia Library");
+    default:             return QStringLiteral("");
+    }
 }
 
 QString QMidi::errorToString(MidiError err)
 {
+    switch(err)
+    {
+    case Warning:          return QStringLiteral("Warning");
+    case DebugWarning:     return QStringLiteral("Debug");
+    case UnspecifiedError: return QStringLiteral("Unspecified Error");
+    case NoDevicesFound:   return QStringLiteral("No Device Found");
+    case InvalidDevice:    return QStringLiteral("Invalid Device");
+    case MemoryError:      return QStringLiteral("Memory Error");
+    case InvalidParameter: return QStringLiteral("Invalid Parameter");
+    case InvalidUse:       return QStringLiteral("Invalid Use");
+    case DriverError:      return QStringLiteral("Driver Error");
+    case SystemError:      return QStringLiteral("System Error");
+    case ThreadError:      return QStringLiteral("Thread Error");
+    default:               return QStringLiteral("");
+    }
+}
 
+void QMidi::sendMessage(const QByteArray& msg)
+{
+    d_func()->send(msg);
+}
+
+void QMidi::sendNoteOff(const quint8 chan, const quint8 note, const quint8 vel)
+{
+    d_func()->send(MIDI_STATUS_NOTEOFF, chan, note, vel);
+}
+
+void QMidi::sendNoteOn(const quint8 chan, const quint8 note, const quint8 vel)
+{
+    d_func()->send(MIDI_STATUS_NOTEON, chan, note, vel);
+}
+
+void QMidi::sendKeyPressure(const quint8 chan, const quint8 note, const quint8 vel)
+{
+    d_func()->send(MIDI_STATUS_KEYPRESURE, chan, note, vel);
+}
+
+void QMidi::sendControler(const quint8 chan, const quint8 control, const quint8 value)
+{
+    d_func()->send(MIDI_STATUS_CONTROLCHANGE, chan, control, value);
+}
+
+void QMidi::sendProgram(const quint8 chan, const quint8 program)
+{
+    d_func()->send(MIDI_STATUS_PROGRAMCHANGE, chan, program);
+}
+
+void QMidi::sendChannelPressure(const quint8 chan, const quint8 value)
+{
+    d_func()->send(MIDI_STATUS_CHANNELPRESSURE, chan, value);
+}
+
+void QMidi::sendPitchBend(const quint8 chan, const qint16 value)
+{
+    d_func()->send(MIDI_STATUS_PITCHBEND, chan, value & 0xFF, (value >> 8) & 0xFF);
 }

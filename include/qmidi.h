@@ -19,16 +19,16 @@ public:
         CoreMidi,
         ALSA,
         JACK,
-        WindowsMultimedia
+        WindowsMM
     };
     Q_ENUM(Api);
 
     enum Direction {
         UnknownDirection,
         Input,
-        Output,
-        InputOutput
+        Output
     };
+    Q_ENUM(Direction);
     Q_DECLARE_FLAGS(Directions, Direction);
 
     enum MidiError
@@ -95,27 +95,27 @@ signals:
     void outputInterfaceChanged();
     void aboutToClose();
 
-    void messageReceived(const QByteArray&);
-    void midiNoteOff		(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void midiNoteOn			(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void midiKeyPressure	(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void midiControler		(const quint8 chan, const quint8 control, const quint8 value);
-    void midiProgram		(const quint8 chan, const quint8 program);
+    void messageReceived(const QByteArray& msg);
+    void midiNoteOff        (const quint8 chan, const quint8 note,    const quint8 vel);
+    void midiNoteOn         (const quint8 chan, const quint8 note,    const quint8 vel);
+    void midiKeyPressure    (const quint8 chan, const quint8 note,    const quint8 vel);
+    void midiControler      (const quint8 chan, const quint8 control, const quint8 value);
+    void midiProgram        (const quint8 chan, const quint8 program);
     void midiChannelPressure(const quint8 chan, const quint8 value);
-    void midiPitchBend		(const quint8 chan, const qint16 value);
-    void midiSysex			(const QByteArray &data);
-    void midiSystemCommon	(const quint8 status);
-    void midiSystemRealtime	(const quint8 status);
+    void midiPitchBend      (const quint8 chan, const qint16 value);
+    void midiSysex          (const QByteArray& data);
+    void midiSystemCommon   (const quint8 status);
+    void midiSystemRealtime (const quint8 status);
 
 public slots:
-    void sendNoteOff		(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void sendNoteOn			(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void sendKeyPressure	(const quint8 chan, const quint8 note,	  const quint8 vel);
-    void sendControler		(const quint8 chan, const quint8 control, const quint8 value);
-    void sendProgram		(const quint8 chan, const quint8 program);
+    void sendMessage(const QByteArray& msg);
+    void sendNoteOff        (const quint8 chan, const quint8 note,    const quint8 vel);
+    void sendNoteOn         (const quint8 chan, const quint8 note,    const quint8 vel);
+    void sendKeyPressure    (const quint8 chan, const quint8 note,    const quint8 vel);
+    void sendControler      (const quint8 chan, const quint8 control, const quint8 value);
+    void sendProgram        (const quint8 chan, const quint8 program);
     void sendChannelPressure(const quint8 chan, const quint8 value);
-    void sendPitchBend		(const quint8 chan, const qint16 value);
-    void sendSysex			(const QByteArray &data);
+    void sendPitchBend      (const quint8 chan, const qint16 value);
 
 private:
     Q_DECLARE_PRIVATE(QMidi);
