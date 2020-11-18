@@ -40,4 +40,6 @@ private:
     QScopedPointer<QMidiInterfacePrivate> d;
 };
 
+Q_DECLARE_METATYPE(QMidiInterface);
+
 #endif // QMIDIINTERFACE_H

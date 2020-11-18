@@ -196,6 +196,11 @@ public:
     static QString apiToString(Api api);
     static QString errorToString(MidiError err);
 
+    static QString version();
+    static QString commit();
+    static QString rtmidiVersion();
+    static QString displayVersion();
+
 signals:
     void apiChanged();
     void clientNameChanged();
@@ -224,6 +229,8 @@ signals:
     void midiStop();
     void midiActiveSensing();
     void midiReset();
+
+    void messageSent();
 
 public slots:
     void sendMessage(const QByteArray& msg);
@@ -254,5 +261,6 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::Directions);
+Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::IgnoreOptions);
 
 #endif // QMIDI_H

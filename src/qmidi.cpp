@@ -5,6 +5,9 @@
 
 #include <QDebug>
 
+#define _STR(x) #x
+#define STRINGIFY(x) _STR(x)
+
 QMidiPrivate::QMidiPrivate() :
     QObjectPrivate()
 {
@@ -33,7 +36,7 @@ void QMidiPrivate::init(QMidi::Api api, QString clientName)
         this->error = QMidi::UnspecifiedError;
 
         sysExOpt = QMidi::KeepUnchanged;
-        ignoreOpt = QMidi::AcceptAll;
+        ignoreOpt = QMidi::IgnoreSysEx | QMidi::IgnoreTime | QMidi::IgnoreSense;
 
         sysExBuf.clear();
     }
@@ -86,6 +89,7 @@ void QMidiPrivate::send(const QByteArray& msg)
     }
 
     midiOut->sendMessage(reinterpret_cast<const unsigned char*>(msg.data()), msg.size());
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status)
@@ -97,6 +101,7 @@ void QMidiPrivate::send(quint8 status)
     }
 
     midiOut->sendMessage(&status, 1);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1)
@@ -119,6 +124,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1)
     v[1] = data1;
 
     midiOut->sendMessage(&v);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
@@ -148,6 +154,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
     v[2] = data2;
 
     midiOut->sendMessage(&v);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::process(QByteArray data)
@@ -545,6 +552,35 @@ void QMidi::close()
     }
 }
 
+QMidi::SysExOptions QMidi::systemExclusiveOptions() const
+{
+    return d_func()->sysExOpt;
+}
+
+void QMidi::setSystemExclusiveOptions(SysExOptions opt)
+{
+    d_func()->sysExOpt = opt;
+}
+
+QMidi::IgnoreOptions QMidi::ignoreOptions() const
+{
+    return d_func()->ignoreOpt;
+}
+
+void QMidi::setIgnoreOptions(IgnoreOptions opt)
+{
+    Q_D(QMidi);
+
+    if(d->ignoreOpt != opt)
+    {
+        d->ignoreOpt = opt;
+
+        d->midiIn->ignoreTypes(opt.testFlag(IgnoreSysEx),
+                               opt.testFlag(IgnoreTime),
+                               opt.testFlag(IgnoreSense));
+    }
+}
+
 QList<QMidiInterface> QMidi::availableInputInterfaces()
 {
     Q_D(QMidi);
@@ -624,6 +660,26 @@ QString QMidi::errorToString(MidiError err)
     case ThreadError:      return QStringLiteral("Thread Error");
     default:               return QStringLiteral("");
     }
+}
+
+QString QMidi::version()
+{
+    return QStringLiteral(STRINGIFY(SOFT_VERSION));
+}
+
+QString QMidi::commit()
+{
+    return QStringLiteral(STRINGIFY(GIT_VERSION));
+}
+
+QString QMidi::rtmidiVersion()
+{
+    return QString::fromStdString(RtMidi::getVersion());
+}
+
+QString QMidi::displayVersion()
+{
+    return QStringLiteral("QMidi v%1 (%2) - RtMidi v%3").arg(version()).arg(commit()).arg(rtmidiVersion());
 }
 
 void QMidi::sendMessage(const QByteArray& msg)
