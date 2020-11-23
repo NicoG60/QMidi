@@ -7,13 +7,6 @@
 #include <RtMidi.h>
 #include <QByteArray>
 
-#define QMIDI_COMBINE_STATUS(MSB, LSB) ((MSB & 0xF0) + (LSB + 0x0F))
-#define QMIDI_COMBINE_14BITS(MSB, LSB) (((MSB & 0x7F) << 7) + (LSB & 0x7F))
-#define QMIDI_MSB_14BITS(DATA) ((DATA >> 7) & 0x7F)
-#define QMIDI_LSB_14BITS(DATA) (DATA & 0x7F)
-
-#define QMIDI_DATA_MAX (0x7F)
-
 class QMidiPrivate : public QObjectPrivate
 {
 public:
@@ -24,7 +17,6 @@ public:
     void init(QMidi::Api api = QMidi::UnspecifiedApi, QString clientName = {});
 
     QMidiInterface interface(RtMidi& dev, QMidi::Directions dir, unsigned int port);
-    QMidiInterface makeVirtual(QString name = {});
 
     void send(const QByteArray& msg);
     void send(quint8 status);

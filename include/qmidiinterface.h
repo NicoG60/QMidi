@@ -25,8 +25,6 @@ public:
 
     bool isValid() const;
 
-    bool isVirtual() const;
-
     int        index() const;
     QMidi::Api api()  const;
     QString    name() const;

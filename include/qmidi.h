@@ -7,6 +7,13 @@
 class QMidiInterface;
 class QMidiPrivate;
 
+#define QMIDI_COMBINE_STATUS(MSB, LSB) ((MSB & 0xF0) + (LSB & 0x0F))
+#define QMIDI_COMBINE_14BITS(MSB, LSB) (((MSB & 0x7F) << 7) + (LSB & 0x7F))
+#define QMIDI_MSB_14BITS(DATA) ((DATA >> 7) & 0x7F)
+#define QMIDI_LSB_14BITS(DATA) (DATA & 0x7F)
+
+#define QMIDI_DATA_MAX (0x7F)
+
 #define QMIDI_DECLARE_NOTE(Suffix) \
     C_##Suffix      = 0, \
     CSharp_##Suffix = 1, \
@@ -174,6 +181,7 @@ public:
     void setOutputInterface(const QMidiInterface& i);
 
     void open();
+    void openVirtual(const QString& name, Directions dir = UnknownDirection);
     bool isOpen();
     Directions openedDirection();
 
@@ -188,8 +196,6 @@ public:
     QList<QMidiInterface> availableInputInterfaces();
     QList<QMidiInterface> availableOutputInterfaces();
     QList<QMidiInterface> availableInterfaces();
-
-    QMidiInterface createVirtualInterface(const QString& name);
 
     static QList<Api> availableApi();
 
@@ -240,7 +246,8 @@ public slots:
     void sendControlChange(quint8 chan, quint8 control, quint8 value);
     void sendProgramChange(quint8 chan, quint8 program);
     void sendChannelPressure(quint8 chan, quint8 value);
-    void sendPitchBend(quint8 chan, qint16 value);
+    void sendPitchBend(quint8 chan, quint16 value);
+    void sendPitchBend(quint8 chan, quint8 msb, quint8 lsb);
 
     void sendSystemExclusive(QByteArray data);
     void sendTimeCode(quint8 msgType, quint8 value);
