@@ -56,6 +56,18 @@ class QMIDI_EXPORT QMidi : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QMidi::Api api READ api WRITE setApi NOTIFY apiChanged)
+    Q_PROPERTY(QString apiName READ apiName NOTIFY apiChanged)
+    Q_PROPERTY(QString clientName READ clientName WRITE setClientName NOTIFY clientNameChanged)
+    Q_PROPERTY(QMidiInterface inputInterface READ inputInterface WRITE setInputInterface NOTIFY inputInterfaceChanged)
+    Q_PROPERTY(QMidiInterface outputInterface READ outputInterface WRITE setOutputInterface NOTIFY outputInterfaceChanged)
+    Q_PROPERTY(QMidi::SysExOptions systemExclusiveOptions READ systemExclusiveOptions WRITE setSystemExclusiveOptions)
+    Q_PROPERTY(QMidi::IgnoreOptions ignoreOptions READ ignoreOptions WRITE setIgnoreOptions)
+    Q_PROPERTY(bool isOpen READ isOpen NOTIFY isOpenChanged)
+
+    Q_PROPERTY(QList<QMidiInterface> availableInputInterfaces READ availableInputInterfaces)
+    Q_PROPERTY(QList<QMidiInterface> availableOutputInterfaces READ availableOutputInterfaces)
+
 public:
     enum Api {
         UnspecifiedApi,
@@ -197,7 +209,7 @@ public:
     QList<QMidiInterface> availableOutputInterfaces();
     QList<QMidiInterface> availableInterfaces();
 
-    static QList<Api> availableApi();
+    Q_INVOKABLE static QList<Api> availableApi();
 
     static QString apiToString(Api api);
     static QString errorToString(MidiError err);
@@ -212,6 +224,7 @@ signals:
     void clientNameChanged();
     void inputInterfaceChanged();
     void outputInterfaceChanged();
+    void isOpenChanged();
     void aboutToClose();
 
     void messageReceived(const QByteArray& msg);
@@ -269,5 +282,7 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::Directions);
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::IgnoreOptions);
+
+#include "qmidiinterface.h"
 
 #endif // QMIDI_H

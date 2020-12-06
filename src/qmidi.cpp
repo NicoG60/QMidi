@@ -504,6 +504,8 @@ void QMidi::open()
 
     if(d->openedDir == UnknownDirection)
         qWarning() << "QMidi: Error occured while trying to open midi devices.";
+    else
+        emit isOpenChanged();
 }
 
 void QMidi::openVirtual(const QString& name, Directions dir)
@@ -560,6 +562,11 @@ void QMidi::openVirtual(const QString& name, Directions dir)
             d->openedDir |= Output;
         }
     }
+
+    if(d->openedDir == UnknownDirection)
+        qWarning() << "QMidi: Error occured while trying to open midi devices.";
+    else
+        emit isOpenChanged();
 }
 
 bool QMidi::isOpen()
@@ -587,6 +594,7 @@ void QMidi::close()
             d->midiOut->closePort();
 
         d->openedDir = UnknownDirection;
+        emit isOpenChanged();
     }
 }
 

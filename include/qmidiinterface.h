@@ -10,6 +10,13 @@
 class QMidiInterfacePrivate;
 class QMIDI_EXPORT QMidiInterface
 {
+    Q_GADGET
+
+    Q_PROPERTY(int index READ index)
+    Q_PROPERTY(QMidi::Api api READ api)
+    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QMidi::Directions directions READ directions)
+
 public:
     QMidiInterface();
     QMidiInterface(const QMidiInterface& copy);
