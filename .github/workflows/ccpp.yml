@@ -28,7 +28,7 @@ jobs:
           modules: core gui network test
 
       - run: sudo apt-get install alsa alsa-tools libasound2-dev
-        if: ${{ runner.os }} == 'Linux'
+        if: runner.os == 'Linux'
 
       - run: cmake -DCMAKE_INSTALL_PREFIX=dist -DQMIDI_BUILD_TESTS=ON -S . -B build
 
