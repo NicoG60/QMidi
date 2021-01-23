@@ -7,6 +7,13 @@
 class QMidiInterface;
 class QMidiPrivate;
 
+#define QMIDI_COMBINE_STATUS(MSB, LSB) ((MSB & 0xF0) + (LSB & 0x0F))
+#define QMIDI_COMBINE_14BITS(MSB, LSB) (((MSB & 0x7F) << 7) + (LSB & 0x7F))
+#define QMIDI_MSB_14BITS(DATA) ((DATA >> 7) & 0x7F)
+#define QMIDI_LSB_14BITS(DATA) (DATA & 0x7F)
+
+#define QMIDI_DATA_MAX (0x7F)
+
 #define QMIDI_DECLARE_NOTE(Suffix) \
     C_##Suffix      = 0, \
     CSharp_##Suffix = 1, \
@@ -48,6 +55,18 @@ class QMidiPrivate;
 class QMIDI_EXPORT QMidi : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QMidi::Api api READ api WRITE setApi NOTIFY apiChanged)
+    Q_PROPERTY(QString apiName READ apiName NOTIFY apiChanged)
+    Q_PROPERTY(QString clientName READ clientName WRITE setClientName NOTIFY clientNameChanged)
+    Q_PROPERTY(QMidiInterface inputInterface READ inputInterface WRITE setInputInterface NOTIFY inputInterfaceChanged)
+    Q_PROPERTY(QMidiInterface outputInterface READ outputInterface WRITE setOutputInterface NOTIFY outputInterfaceChanged)
+    Q_PROPERTY(QMidi::SysExOptions systemExclusiveOptions READ systemExclusiveOptions WRITE setSystemExclusiveOptions)
+    Q_PROPERTY(QMidi::IgnoreOptions ignoreOptions READ ignoreOptions WRITE setIgnoreOptions)
+    Q_PROPERTY(bool isOpen READ isOpen NOTIFY isOpenChanged)
+
+    Q_PROPERTY(QList<QMidiInterface> availableInputInterfaces READ availableInputInterfaces)
+    Q_PROPERTY(QList<QMidiInterface> availableOutputInterfaces READ availableOutputInterfaces)
 
 public:
     enum Api {
@@ -174,6 +193,7 @@ public:
     void setOutputInterface(const QMidiInterface& i);
 
     void open();
+    void openVirtual(const QString& name, Directions dir = UnknownDirection);
     bool isOpen();
     Directions openedDirection();
 
@@ -189,18 +209,22 @@ public:
     QList<QMidiInterface> availableOutputInterfaces();
     QList<QMidiInterface> availableInterfaces();
 
-    QMidiInterface createVirtualInterface(const QString& name);
-
-    static QList<Api> availableApi();
+    Q_INVOKABLE static QList<Api> availableApi();
 
     static QString apiToString(Api api);
     static QString errorToString(MidiError err);
+
+    static QString version();
+    static QString commit();
+    static QString rtmidiVersion();
+    static QString displayVersion();
 
 signals:
     void apiChanged();
     void clientNameChanged();
     void inputInterfaceChanged();
     void outputInterfaceChanged();
+    void isOpenChanged();
     void aboutToClose();
 
     void messageReceived(const QByteArray& msg);
@@ -225,6 +249,8 @@ signals:
     void midiActiveSensing();
     void midiReset();
 
+    void messageSent();
+
 public slots:
     void sendMessage(const QByteArray& msg);
     void sendNoteOff(quint8 chan, quint8 note, quint8 vel);
@@ -233,7 +259,8 @@ public slots:
     void sendControlChange(quint8 chan, quint8 control, quint8 value);
     void sendProgramChange(quint8 chan, quint8 program);
     void sendChannelPressure(quint8 chan, quint8 value);
-    void sendPitchBend(quint8 chan, qint16 value);
+    void sendPitchBend(quint8 chan, quint16 value);
+    void sendPitchBend(quint8 chan, quint8 msb, quint8 lsb);
 
     void sendSystemExclusive(QByteArray data);
     void sendTimeCode(quint8 msgType, quint8 value);
@@ -254,5 +281,8 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::Directions);
+Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::IgnoreOptions);
+
+#include "qmidiinterface.h"
 
 #endif // QMIDI_H

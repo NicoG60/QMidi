@@ -51,12 +51,7 @@ void QMidiInterface::swap(QMidiInterface& other) noexcept
 
 bool QMidiInterface::isValid() const
 {
-    return d->index != -1;
-}
-
-bool QMidiInterface::isVirtual() const
-{
-    return d->index < -1;
+    return d->index > -1;
 }
 
 int QMidiInterface::index() const

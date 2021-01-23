@@ -5,6 +5,9 @@
 
 #include <QDebug>
 
+#define _STR(x) #x
+#define STRINGIFY(x) _STR(x)
+
 QMidiPrivate::QMidiPrivate() :
     QObjectPrivate()
 {
@@ -33,7 +36,7 @@ void QMidiPrivate::init(QMidi::Api api, QString clientName)
         this->error = QMidi::UnspecifiedError;
 
         sysExOpt = QMidi::KeepUnchanged;
-        ignoreOpt = QMidi::AcceptAll;
+        ignoreOpt = QMidi::IgnoreSysEx | QMidi::IgnoreTime | QMidi::IgnoreSense;
 
         sysExBuf.clear();
     }
@@ -63,20 +66,6 @@ QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidi::Directions dir, unsig
     return i;
 }
 
-QMidiInterface QMidiPrivate::makeVirtual(QString name)
-{
-    if(name.isEmpty())
-        name = "QMidi Virtual Port";
-
-    QMidiInterface i;
-    i.d->api       = api;
-    i.d->direction = QMidi::Input | QMidi::Output;
-    i.d->name      = name;
-    i.d->index     = -2;
-
-    return i;
-}
-
 void QMidiPrivate::send(const QByteArray& msg)
 {
     if(!openedDir.testFlag(QMidi::Output))
@@ -86,6 +75,7 @@ void QMidiPrivate::send(const QByteArray& msg)
     }
 
     midiOut->sendMessage(reinterpret_cast<const unsigned char*>(msg.data()), msg.size());
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status)
@@ -97,6 +87,7 @@ void QMidiPrivate::send(quint8 status)
     }
 
     midiOut->sendMessage(&status, 1);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1)
@@ -119,6 +110,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1)
     v[1] = data1;
 
     midiOut->sendMessage(&v);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
@@ -148,6 +140,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
     v[2] = data2;
 
     midiOut->sendMessage(&v);
+    q_func()->messageSent();
 }
 
 void QMidiPrivate::process(QByteArray data)
@@ -491,10 +484,8 @@ void QMidi::open()
     {
         auto idx = d->ifaceIn.index();
         auto name = d->ifaceIn.name().toStdString();
-        if(d->ifaceIn.isVirtual())
-            d->midiIn->openVirtualPort(name);
-        else
-            d->midiIn->openPort(idx, name);
+
+        d->midiIn->openPort(idx, name);
 
         if(!hasError())
             d->openedDir |= Input;
@@ -504,10 +495,8 @@ void QMidi::open()
     {
         auto idx = d->ifaceOut.index();
         auto name = d->ifaceOut.name().toStdString();
-        if(d->ifaceOut.isVirtual())
-            d->midiOut->openVirtualPort(name);
-        else
-            d->midiOut->openPort(idx, name);
+
+        d->midiOut->openPort(idx, name);
 
         if(!hasError())
             d->openedDir |= Output;
@@ -515,6 +504,69 @@ void QMidi::open()
 
     if(d->openedDir == UnknownDirection)
         qWarning() << "QMidi: Error occured while trying to open midi devices.";
+    else
+        emit isOpenChanged();
+}
+
+void QMidi::openVirtual(const QString& name, Directions dir)
+{
+    Q_D(QMidi);
+
+    if(dir == UnknownDirection)
+        dir = Input | Output;
+
+    if(dir.testFlag(Input))
+    {
+        d->midiIn->openVirtualPort(name.toStdString());
+
+        if(!hasError())
+        {
+            for(auto i : availableOutputInterfaces())
+            {
+                if(i.name() == name)
+                {
+                    if(d->ifaceIn != i)
+                    {
+                        d->ifaceIn = i;
+                        inputInterfaceChanged();
+                    }
+                    break;
+                }
+            }
+
+
+            d->openedDir |= Input;
+        }
+    }
+
+    if(dir.testFlag(Output))
+    {
+        d->midiOut->openVirtualPort(name.toStdString());
+
+        if(!hasError())
+        {
+            for(auto i : availableInputInterfaces())
+            {
+                if(i.name() == name)
+                {
+                    if(d->ifaceOut != i)
+                    {
+                        d->ifaceOut = i;
+                        outputInterfaceChanged();
+                    }
+                    break;
+                }
+            }
+
+
+            d->openedDir |= Output;
+        }
+    }
+
+    if(d->openedDir == UnknownDirection)
+        qWarning() << "QMidi: Error occured while trying to open midi devices.";
+    else
+        emit isOpenChanged();
 }
 
 bool QMidi::isOpen()
@@ -542,6 +594,36 @@ void QMidi::close()
             d->midiOut->closePort();
 
         d->openedDir = UnknownDirection;
+        emit isOpenChanged();
+    }
+}
+
+QMidi::SysExOptions QMidi::systemExclusiveOptions() const
+{
+    return d_func()->sysExOpt;
+}
+
+void QMidi::setSystemExclusiveOptions(SysExOptions opt)
+{
+    d_func()->sysExOpt = opt;
+}
+
+QMidi::IgnoreOptions QMidi::ignoreOptions() const
+{
+    return d_func()->ignoreOpt;
+}
+
+void QMidi::setIgnoreOptions(IgnoreOptions opt)
+{
+    Q_D(QMidi);
+
+    if(d->ignoreOpt != opt)
+    {
+        d->ignoreOpt = opt;
+
+        d->midiIn->ignoreTypes(opt.testFlag(IgnoreSysEx),
+                               opt.testFlag(IgnoreTime),
+                               opt.testFlag(IgnoreSense));
     }
 }
 
@@ -574,11 +656,6 @@ QList<QMidiInterface> QMidi::availableOutputInterfaces()
 QList<QMidiInterface> QMidi::availableInterfaces()
 {
     return availableInputInterfaces() + availableOutputInterfaces();
-}
-
-QMidiInterface QMidi::createVirtualInterface(const QString& name)
-{
-    return d_func()->makeVirtual(name);
 }
 
 QList<QMidi::Api> QMidi::availableApi()
@@ -626,6 +703,26 @@ QString QMidi::errorToString(MidiError err)
     }
 }
 
+QString QMidi::version()
+{
+    return QStringLiteral(STRINGIFY(SOFT_VERSION));
+}
+
+QString QMidi::commit()
+{
+    return QStringLiteral(STRINGIFY(GIT_VERSION));
+}
+
+QString QMidi::rtmidiVersion()
+{
+    return QString::fromStdString(RtMidi::getVersion());
+}
+
+QString QMidi::displayVersion()
+{
+    return QStringLiteral("QMidi v%1 (%2) - RtMidi v%3").arg(version()).arg(commit()).arg(rtmidiVersion());
+}
+
 void QMidi::sendMessage(const QByteArray& msg)
 {
     d_func()->send(msg);
@@ -661,11 +758,18 @@ void QMidi::sendChannelPressure(quint8 chan, quint8 value)
     d_func()->send(QMIDI_COMBINE_STATUS(ChannelPressureStatus, chan), chan, value);
 }
 
-void QMidi::sendPitchBend(quint8 chan, qint16 value)
+void QMidi::sendPitchBend(quint8 chan, quint16 value)
 {
     d_func()->send(QMIDI_COMBINE_STATUS(PitchBendStatus, chan),
                    QMIDI_LSB_14BITS(value),
                    QMIDI_MSB_14BITS(value));
+}
+
+void QMidi::sendPitchBend(quint8 chan, quint8 msb, quint8 lsb)
+{
+    d_func()->send(QMIDI_COMBINE_STATUS(PitchBendStatus, chan),
+                   lsb,
+                   msb);
 }
 
 void QMidi::sendSystemExclusive(QByteArray data)
