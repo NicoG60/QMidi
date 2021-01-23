@@ -27,6 +27,9 @@ jobs:
           cached: ${{ steps.cache.outputs.cache-hit }}
           modules: core gui network test
 
+      - run: apt-get install alsa alsa-tools
+        if: ${{ runner.os }} == 'Linux'
+
       - run: cmake -DCMAKE_INSTALL_PREFIX=dist -DQMIDI_BUILD_TESTS=ON -S . -B build
 
       - run: cmake --build build --config Release
