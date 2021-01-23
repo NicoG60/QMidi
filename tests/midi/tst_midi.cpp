@@ -113,6 +113,9 @@ void midi::test_open()
 
 void midi::test_virtual()
 {
+#ifdef Q_OS_WIN
+    QSKIP("Virtual ports dont work yet on Windows");
+#else
     auto in = _midi.createVirtualInterface("Virtual In");
     auto out = _midi.createVirtualInterface("Virtual Out");
 
@@ -133,6 +136,7 @@ void midi::test_virtual()
     QVERIFY(!_midi.hasError());
     QVERIFY(!_midi.isOpen());
     QCOMPARE(_midi.openedDirection(), QMidi::UnknownDirection);
+#endif
 }
 
 QTEST_MAIN(midi)
