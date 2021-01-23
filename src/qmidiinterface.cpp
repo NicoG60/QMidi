@@ -1,5 +1,5 @@
 #include <qmidiinterface.h>
-#include <qmidiinterface_p.h>
+#include "qmidiinterface_p.h"
 #include <QDebug>
 
 QMidiInterface::QMidiInterface() :
