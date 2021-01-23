@@ -29,7 +29,7 @@ if(NOT RtMidi_FOUND)
     elseif(UNIX)
         include(FindALSA)
         find_package(Threads REQUIRED CMAKE_THREAD_PREFER_PTHREAD THREADS_PREFER_PTHREAD_FLAG)
-        target_link_libraries(rtidi PUBLIC ALSA::ALSA Threads::Threads)
+        target_link_libraries(rtmidi PUBLIC ALSA::ALSA Threads::Threads)
         target_compile_definitions(rtmidi PRIVATE __LINUX_ALSA__)
     endif()
 
