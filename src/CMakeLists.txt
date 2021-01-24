@@ -16,21 +16,21 @@ if(NOT RtMidi_FOUND)
 
     set(RtMidi_DIR ${QMIDI_SOURCE_DIR}/third_party/rtmidi)
 
-    add_library(rtmidi ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
-    target_include_directories(rtmidi PUBLIC ${RtMidi_DIR})
-    target_compile_definitions(rtmidi PRIVATE RTMIDI_EXPORT)
+    add_library(rtmidi INTERFACE ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
+    target_include_directories(rtmidi INTERFACE ${RtMidi_DIR})
+    target_compile_definitions(rtmidi INTERFACE RTMIDI_EXPORT)
 
     if(APPLE)
-        target_link_libraries(rtmidi PUBLIC "-framework CoreMIDI" "-framework CoreAudio" "-framework CoreFoundation")
-        target_compile_definitions(rtmidi PRIVATE __MACOSX_CORE__)
+        target_link_libraries(rtmidi INTERFACE "-framework CoreMIDI" "-framework CoreAudio" "-framework CoreFoundation")
+        target_compile_definitions(rtmidi INTERFACE __MACOSX_CORE__)
     elseif(WIN32)
-        target_link_libraries(rtmidi PUBLIC winmm)
-        target_compile_definitions(rtmidi PRIVATE __WINDOWS_MM__)
+        target_link_libraries(rtmidi INTERFACE winmm)
+        target_compile_definitions(rtmidi INTERFACE __WINDOWS_MM__)
     elseif(UNIX)
         include(FindALSA)
         find_package(Threads REQUIRED CMAKE_THREAD_PREFER_PTHREAD THREADS_PREFER_PTHREAD_FLAG)
-        target_link_libraries(rtmidi PUBLIC ALSA::ALSA Threads::Threads)
-        target_compile_definitions(rtmidi PRIVATE __LINUX_ALSA__)
+        target_link_libraries(rtmidi INTERFACE ALSA::ALSA Threads::Threads)
+        target_compile_definitions(rtmidi INTERFACE __LINUX_ALSA__)
     endif()
 
     add_library(RtMidi::rtmidi ALIAS rtmidi)
@@ -50,7 +50,7 @@ target_include_directories(
     PRIVATE
         ${Qt5Core_PRIVATE_INCLUDE_DIRS}
 )
-target_compile_definitions(QMidi PRIVATE QOSC_LIBRARY)
+target_compile_definitions(QMidi PRIVATE QMIDI_LIBRARY)
 
 # install
 install(TARGETS QMidi EXPORT QMidi DESTINATION ${lib_dest})
