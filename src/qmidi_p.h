@@ -12,7 +12,7 @@ class QMidiPrivate : public QObjectPrivate
 public:
     Q_DECLARE_PUBLIC(QMidi)
 
-    QMidiPrivate();
+    QMidiPrivate() = default;
 
     void init(QMidi::Api api = QMidi::UnspecifiedApi, QString clientName = {});
 

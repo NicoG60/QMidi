@@ -12,7 +12,7 @@ QMidiInterface::QMidiInterface(const QMidiInterface& copy) :
     *d = *copy.d;
 }
 
-QMidiInterface::QMidiInterface(QMidiInterface&& move)
+QMidiInterface::QMidiInterface(QMidiInterface&& move) noexcept
 {
     swap(move);
 }
@@ -23,7 +23,7 @@ QMidiInterface& QMidiInterface::operator=(const QMidiInterface& copy)
     return *this;
 }
 
-QMidiInterface& QMidiInterface::operator=(QMidiInterface&& move)
+QMidiInterface& QMidiInterface::operator=(QMidiInterface&& move) noexcept
 {
     swap(move);
     return *this;

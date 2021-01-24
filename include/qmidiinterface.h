@@ -20,9 +20,9 @@ class QMIDI_EXPORT QMidiInterface
 public:
     QMidiInterface();
     QMidiInterface(const QMidiInterface& copy);
-    QMidiInterface(QMidiInterface&& move);
+    QMidiInterface(QMidiInterface&& move) noexcept;
     QMidiInterface& operator=(const QMidiInterface& copy);
-    QMidiInterface& operator=(QMidiInterface&& move);
+    QMidiInterface& operator=(QMidiInterface&& move) noexcept;
     ~QMidiInterface();
 
     bool operator==(const QMidiInterface& other) const;

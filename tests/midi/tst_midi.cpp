@@ -78,19 +78,12 @@ void midi::test_midi_interfaces()
         QVERIFY(i.index() >= 0);
         QCOMPARE(i.directions(), QMidi::Output);
     }
-
-    auto i = _midi.createVirtualInterface("Virtual");
-
-    QCOMPARE(i.api(), _midi.api());
-    QCOMPARE(i.index(), -2);
-    QCOMPARE(i.name(), "Virtual");
-    QCOMPARE(i.directions(), QMidi::Input | QMidi::Output);
 }
 
 void midi::test_open()
 {
-    auto in  = _midi.availableInputInterfaces().first();
-    auto out = _midi.availableOutputInterfaces().first();
+    const auto& in  = _midi.availableInputInterfaces().constFirst();
+    const auto& out = _midi.availableOutputInterfaces().constFirst();
 
     _midi.setInputInterface(in);
     _midi.setOutputInterface(out);
@@ -116,17 +109,10 @@ void midi::test_virtual()
 #ifdef Q_OS_WIN
     QSKIP("Virtual ports dont work yet on Windows");
 #else
-    auto in = _midi.createVirtualInterface("Virtual In");
-    auto out = _midi.createVirtualInterface("Virtual Out");
+    _midi.openVirtual("Virtual");
 
-    _midi.setInputInterface(in);
-    _midi.setOutputInterface(out);
-
-    QCOMPARE(_midi.inputInterface(), in);
-    QCOMPARE(_midi.outputInterface(), out);
-
-    _midi.open();
-
+    QCOMPARE(_midi.inputInterface().name(), "Virtual");
+    QCOMPARE(_midi.outputInterface().name(), "Virtual");
     QVERIFY(!_midi.hasError());
     QVERIFY(_midi.isOpen());
     QCOMPARE(_midi.openedDirection(), QMidi::Input | QMidi::Output);

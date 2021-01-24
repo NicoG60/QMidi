@@ -8,12 +8,6 @@
 #define _STR(x) #x
 #define STRINGIFY(x) _STR(x)
 
-QMidiPrivate::QMidiPrivate() :
-    QObjectPrivate()
-{
-
-}
-
 void QMidiPrivate::init(QMidi::Api api, QString clientName)
 {
     try
@@ -75,7 +69,7 @@ void QMidiPrivate::send(const QByteArray& msg)
     }
 
     midiOut->sendMessage(reinterpret_cast<const unsigned char*>(msg.data()), msg.size());
-    q_func()->messageSent();
+    emit q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status)
@@ -87,7 +81,7 @@ void QMidiPrivate::send(quint8 status)
     }
 
     midiOut->sendMessage(&status, 1);
-    q_func()->messageSent();
+    emit q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1)
@@ -110,7 +104,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1)
     v[1] = data1;
 
     midiOut->sendMessage(&v);
-    q_func()->messageSent();
+    emit q_func()->messageSent();
 }
 
 void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
@@ -140,7 +134,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
     v[2] = data2;
 
     midiOut->sendMessage(&v);
-    q_func()->messageSent();
+    emit q_func()->messageSent();
 }
 
 void QMidiPrivate::process(QByteArray data)
@@ -148,38 +142,38 @@ void QMidiPrivate::process(QByteArray data)
     Q_ASSERT(!data.isEmpty());
     Q_Q(QMidi);
 
-    q->messageReceived(data);
+    emit q->messageReceived(data);
 
     quint8 status = data[0];
 
     switch(status & 0xF0)
     {
     case QMidi::NoteOnStatus:
-        q->midiNoteOn(status & 0x0F, data[1], data[2]);
+        emit q->midiNoteOn(status & 0x0F, data[1], data[2]);
         return;
 
     case QMidi::NoteOffStatus:
-        q->midiNoteOff(status & 0x0F, data[1], data[2]);
+        emit q->midiNoteOff(status & 0x0F, data[1], data[2]);
         return;
 
     case QMidi::KeyPressureStatus:
-        q->midiKeyPressure(status & 0x0F, data[1], data[2]);
+        emit q->midiKeyPressure(status & 0x0F, data[1], data[2]);
         return;
 
     case QMidi::ControlChangeStatus:
-        q->midiControlChange(status & 0x0F, data[1], data[2]);
+        emit q->midiControlChange(status & 0x0F, data[1], data[2]);
         return;
 
     case QMidi::ProgramChangeStatus:
-        q->midiProgramChange(status & 0x0F, data[1]);
+        emit q->midiProgramChange(status & 0x0F, data[1]);
         return;
 
     case QMidi::ChannelPressureStatus:
-        q->midiChannelPressure(status & 0x0F, data[1]);
+        emit q->midiChannelPressure(status & 0x0F, data[1]);
         return;
 
     case QMidi::PitchBendStatus:
-        q->midiPitchBend(status & 0x0F, QMIDI_COMBINE_14BITS(data[2], data[1]));
+        emit q->midiPitchBend(status & 0x0F, QMIDI_COMBINE_14BITS(data[2], data[1]));
         return;
 
     default:
@@ -196,39 +190,39 @@ void QMidiPrivate::process(QByteArray data)
         break;
 
     case QMidi::MidiTimeCodeMessage:
-        q->midiTimeCode((data[1] >> 4) & 0x0F, data[1] & 0x0F);
+        emit q->midiTimeCode((data[1] >> 4) & 0x0F, data[1] & 0x0F);
         break;
 
     case QMidi::SongPositionMessage:
-        q->midiSongPosition(QMIDI_COMBINE_14BITS(data[2], data[1]));
+        emit q->midiSongPosition(QMIDI_COMBINE_14BITS(data[2], data[1]));
         break;
 
     case QMidi::SongSelectMessage:
-        q->midiSongSelect(data[1]);
+        emit q->midiSongSelect(data[1]);
         break;
 
     case QMidi::TuneRequestMessage:
-        q->midiTuneRequest();
+        emit q->midiTuneRequest();
         break;
 
     case QMidi::TimingClockMessage:
-        q->midiTimingClock();
+        emit q->midiTimingClock();
         break;
 
     case QMidi::StartMessage:
-        q->midiStart();
+        emit q->midiStart();
         break;
 
     case QMidi::ContinueMessage:
-        q->midiContinue();
+        emit q->midiContinue();
         break;
 
     case QMidi::ActiveSensingMessage:
-        q->midiActiveSensing();
+        emit q->midiActiveSensing();
         break;
 
     case QMidi::ResetMessage:
-        q->midiReset();
+        emit q->midiReset();
         break;
 
     default:
@@ -282,7 +276,7 @@ void QMidiPrivate::processSysex(QByteArray data)
         data.resize(std::distance(data.begin(), c1));
     }
 
-    q_func()->midiSystemExclusive(data);
+    emit q_func()->midiSystemExclusive(data);
 }
 
 void QMidiPrivate::midiCallback(double timeStamp, std::vector<unsigned char>* msg, void* data)
@@ -521,14 +515,14 @@ void QMidi::openVirtual(const QString& name, Directions dir)
 
         if(!hasError())
         {
-            for(auto i : availableOutputInterfaces())
+            for(const auto& i : availableOutputInterfaces())
             {
                 if(i.name() == name)
                 {
                     if(d->ifaceIn != i)
                     {
                         d->ifaceIn = i;
-                        inputInterfaceChanged();
+                        emit inputInterfaceChanged();
                     }
                     break;
                 }
@@ -545,14 +539,14 @@ void QMidi::openVirtual(const QString& name, Directions dir)
 
         if(!hasError())
         {
-            for(auto i : availableInputInterfaces())
+            for(const auto& i : availableInputInterfaces())
             {
                 if(i.name() == name)
                 {
                     if(d->ifaceOut != i)
                     {
                         d->ifaceOut = i;
-                        outputInterfaceChanged();
+                        emit outputInterfaceChanged();
                     }
                     break;
                 }
@@ -720,7 +714,7 @@ QString QMidi::rtmidiVersion()
 
 QString QMidi::displayVersion()
 {
-    return QStringLiteral("QMidi v%1 (%2) - RtMidi v%3").arg(version()).arg(commit()).arg(rtmidiVersion());
+    return QStringLiteral("QMidi v%1 (%2) - RtMidi v%3").arg(version(), commit(), rtmidiVersion());
 }
 
 void QMidi::sendMessage(const QByteArray& msg)
