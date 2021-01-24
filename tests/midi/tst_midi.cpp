@@ -11,7 +11,7 @@ class midi : public QObject
 
 public:
     midi();
-    ~midi();
+    ~midi() override = default;
 
 private slots:
     void test_ctor();
@@ -26,7 +26,6 @@ private slots:
 
 private:
     QMidi _midi;
-    QMidi _midi2;
 };
 
 midi::midi()
@@ -34,11 +33,6 @@ midi::midi()
     qDebug() << "Available Midi APIs:";
     for(auto& a : QMidi::availableApi())
         qDebug() << "-" << QMidi::apiToString(a);
-}
-
-midi::~midi()
-{
-
 }
 
 void midi::test_ctor()
