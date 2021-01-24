@@ -40,7 +40,7 @@ endif()
 
 # define library target
 add_library(QMidi ${headers} ${src})
-target_link_libraries(QMidi PUBLIC Qt5::Core PRIVATE $<BUILD_INTERFACE:RtMidi::rtmidi>)
+target_link_libraries(QMidi PUBLIC Qt5::Core RtMidi::rtmidi>)
 target_include_directories(
     QMidi
     PUBLIC
