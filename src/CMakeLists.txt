@@ -13,7 +13,7 @@ execute_process(COMMAND git submodule update --init third_party/rtmidi
 
 set(RtMidi_DIR ${QMIDI_SOURCE_DIR}/third_party/rtmidi)
 
-list(APPEND ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
+list(APPEND src ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
 
 # define library target
 add_library(QMidi ${headers} ${src})
