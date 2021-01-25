@@ -29,6 +29,8 @@ target_include_directories(
         ${RtMidi_DIR}
 )
 target_compile_definitions(QMidi PRIVATE QMIDI_LIBRARY)
+target_compile_definitions(QMidi PRIVATE SOFT_VERSION=${PROJECT_VERSION})
+target_compile_definitions(QMidi PRIVATE GIT_VERSION=${GIT_VERSION})
 
 if(APPLE)
     target_link_libraries(QMidi PUBLIC "-framework CoreMIDI" "-framework CoreAudio" "-framework CoreFoundation")
