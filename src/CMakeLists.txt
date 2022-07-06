@@ -6,7 +6,11 @@ file(GLOB headers ${header_path}/QM* ${header_path}/qm*)
 file(GLOB src *.cpp)
 
 # setup deps
-find_package(Qt5 COMPONENTS Core REQUIRED)
+if(NOT TARGET Qt::Core)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    set(Qt "Qt${QT_VERSION_MAJOR}")
+    find_package(${Qt} COMPONENTS Core REQUIRED)
+endif()
 
 execute_process(COMMAND git submodule update --init third_party/rtmidi
                 WORKING_DIRECTORY ${QMIDI_SOURCE_DIR})
@@ -17,7 +21,7 @@ list(APPEND src ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
 
 # define library target
 add_library(QMidi ${headers} ${src})
-target_link_libraries(QMidi PUBLIC Qt5::Core)
+target_link_libraries(QMidi PUBLIC Qt::Core)
 target_include_directories(
     QMidi
     PUBLIC
