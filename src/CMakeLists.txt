@@ -29,7 +29,7 @@ target_include_directories(
         $<INSTALL_INTERFACE:${include_dest}>
 
     PRIVATE
-        ${Qt5Core_PRIVATE_INCLUDE_DIRS}
+        ${${Qt}Core_PRIVATE_INCLUDE_DIRS}
         ${RtMidi_DIR}
 )
 target_compile_definitions(QMidi PRIVATE QMIDI_LIBRARY)
