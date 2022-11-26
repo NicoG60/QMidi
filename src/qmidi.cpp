@@ -52,10 +52,10 @@ QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidi::Directions dir, unsig
     }
 
     QMidiInterface i;
-    i.d->api       = api;
-    i.d->direction = dir;
-    i.d->name      = QString::fromStdString(dev.getPortName(port));
-    i.d->index     = port;
+    i.d_ptr->api       = api;
+    i.d_ptr->direction = dir;
+    i.d_ptr->name      = QString::fromStdString(dev.getPortName(port));
+    i.d_ptr->index     = port;
 
     return i;
 }
