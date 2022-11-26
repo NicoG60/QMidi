@@ -1,13 +1,12 @@
 #ifndef QMIDI_P_H
 #define QMIDI_P_H
 
-#include <private/qobject_p.h>
 #include <qmidi.h>
 #include <qmidiinterface.h>
 #include <RtMidi.h>
 #include <QByteArray>
 
-class QMidiPrivate : public QObjectPrivate
+class QMidiPrivate
 {
 public:
     Q_DECLARE_PUBLIC(QMidi)
@@ -25,6 +24,8 @@ public:
 
     void process(QByteArray data);
     void processSysex(QByteArray data);
+
+    QMidi* q_ptr = nullptr;
 
     bool hasError;
 

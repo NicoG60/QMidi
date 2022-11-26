@@ -309,21 +309,30 @@ void QMidiPrivate::errorCallback(RtMidiError::Type type, const std::string& text
 
 
 QMidi::QMidi(QObject* parent) :
-    QObject(*new QMidiPrivate, parent)
+    QObject(parent),
+    d_ptr(new QMidiPrivate)
 {
-    d_func()->init();
+    Q_D(QMidi);
+    d->q_ptr = this;
+    d->init();
 }
 
 QMidi::QMidi(Api api, QObject* parent) :
-    QObject(*new QMidiPrivate, parent)
+    QObject(parent),
+    d_ptr(new QMidiPrivate)
 {
-    d_func()->init(api);
+    Q_D(QMidi);
+    d->q_ptr = this;
+    d->init(api);
 }
 
 QMidi::QMidi(Api api, const QString& clientName, QObject* parent) :
-    QObject(*new QMidiPrivate, parent)
+    QObject(parent),
+    d_ptr(new QMidiPrivate)
 {
-    d_func()->init(api, clientName);
+    Q_D(QMidi);
+    d->q_ptr = this;
+    d->init(api, clientName);
 }
 
 QMidi::~QMidi()

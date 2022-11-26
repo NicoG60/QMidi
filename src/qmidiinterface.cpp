@@ -3,13 +3,16 @@
 #include <QDebug>
 
 QMidiInterface::QMidiInterface() :
-    d(new QMidiInterfacePrivate)
-{}
+    d_ptr(new QMidiInterfacePrivate)
+{
+    d_ptr->q_ptr = this;
+}
 
 QMidiInterface::QMidiInterface(const QMidiInterface& copy) :
     QMidiInterface()
 {
-    *d = *copy.d;
+    *d_ptr = *copy.d_ptr;
+    d_ptr->q_ptr = this;
 }
 
 QMidiInterface::QMidiInterface(QMidiInterface&& move) noexcept
@@ -19,7 +22,8 @@ QMidiInterface::QMidiInterface(QMidiInterface&& move) noexcept
 
 QMidiInterface& QMidiInterface::operator=(const QMidiInterface& copy)
 {
-    *d = *copy.d;
+    *d_ptr = *copy.d_ptr;
+    d_ptr->q_ptr = this;
     return *this;
 }
 
@@ -46,32 +50,33 @@ bool QMidiInterface::operator!=(const QMidiInterface& other) const
 
 void QMidiInterface::swap(QMidiInterface& other) noexcept
 {
-    qSwap(d, other.d);
+    qSwap(d_ptr, other.d_ptr);
+    qSwap(d_ptr->q_ptr, other.d_ptr->q_ptr);
 }
 
 bool QMidiInterface::isValid() const
 {
-    return d->index > -1;
+    return d_ptr->index > -1;
 }
 
 int QMidiInterface::index() const
 {
-    return d->index;
+    return d_ptr->index;
 }
 
 QMidi::Api QMidiInterface::api() const
 {
-    return d->api;
+    return d_ptr->api;
 }
 
 QString QMidiInterface::name() const
 {
-    return d->name;
+    return d_ptr->name;
 }
 
 QMidi::Directions QMidiInterface::directions() const
 {
-    return d->direction;
+    return d_ptr->direction;
 }
 
 QDebug operator<<(QDebug debug, const QMidiInterface& iface)

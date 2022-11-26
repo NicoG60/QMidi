@@ -172,7 +172,7 @@ public:
     QMidi(QObject* parent = nullptr);
     QMidi(Api api, QObject* parent = nullptr);
     QMidi(Api api, const QString& clientName, QObject* parent = nullptr);
-    ~QMidi();
+    ~QMidi() override;
 
     Api api() const;
     void setApi(Api api);
@@ -209,7 +209,7 @@ public:
     QList<QMidiInterface> availableOutputInterfaces();
     QList<QMidiInterface> availableInterfaces();
 
-    Q_INVOKABLE static QList<Api> availableApi();
+    Q_INVOKABLE static QList<QMidi::Api> availableApi();
 
     static QString apiToString(Api api);
     static QString errorToString(MidiError err);
@@ -278,6 +278,8 @@ public slots:
 private:
     Q_DECLARE_PRIVATE(QMidi);
     Q_DISABLE_COPY(QMidi);
+
+    QScopedPointer<QMidiPrivate> d_ptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::Directions);

@@ -5,6 +5,8 @@
 
 class QMidiInterfacePrivate
 {
+    Q_DECLARE_PUBLIC(QMidiInterface)
+
 public:
     QMidiInterfacePrivate() = default;
     QMidiInterfacePrivate(const QMidiInterfacePrivate&) = default;
@@ -13,6 +15,8 @@ public:
 
     QMidiInterfacePrivate& operator=(const QMidiInterfacePrivate&) = default;
     QMidiInterfacePrivate& operator=(QMidiInterfacePrivate&&) noexcept = default;
+
+    QMidiInterface* q_ptr = nullptr;
 
     int index = -1;
     QMidi::Api api = QMidi::UnspecifiedApi;

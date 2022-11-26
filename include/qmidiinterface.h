@@ -40,9 +40,8 @@ public:
     friend QDebug operator<<(QDebug debug, const QMidiInterface& iface);
 
 private:
-    friend class QMidi;
-    friend class QMidiPrivate;
-    QScopedPointer<QMidiInterfacePrivate> d;
+    Q_DECLARE_PRIVATE(QMidiInterface);
+    QScopedPointer<QMidiInterfacePrivate> d_ptr;
 };
 
 Q_DECLARE_METATYPE(QMidiInterface);
