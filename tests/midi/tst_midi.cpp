@@ -37,9 +37,9 @@ midi::midi()
 
 void midi::test_ctor()
 {
-#ifdef Q_OS_MAC
+#if defined(Q_OS_MAC)
     QCOMPARE(_midi.api(), QMidiApi::CoreMidi);
-#elif Q_OS_WIN
+#elif defined(Q_OS_WIN)
     QCOMPARE(_midi.api(), QMidiApi::WindowsMM);
 #else
     if(_midi.api() != QMidiApi::ALSA && _midi.api() != QMidiApi::JACK)
