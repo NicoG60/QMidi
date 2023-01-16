@@ -5,11 +5,8 @@ file(GLOB headers ${header_path}/QM* ${header_path}/qm*)
 # set sources
 file(GLOB src *.cpp)
 
-execute_process(COMMAND git submodule update --init third_party/rtmidi
-                WORKING_DIRECTORY ${QMIDI_SOURCE_DIR})
-
 # define library target
-add_library(QMidi ${headers} ${src})
+add_library(QMidi STATIC ${headers} ${src})
 target_link_libraries(QMidi PUBLIC Qt::Core)
 target_link_libraries(QMidi PRIVATE qmidi_third_party)
 target_include_directories(
