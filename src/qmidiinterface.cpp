@@ -50,8 +50,8 @@ bool QMidiInterface::operator!=(const QMidiInterface& other) const
 
 void QMidiInterface::swap(QMidiInterface& other) noexcept
 {
-    qSwap(d_ptr, other.d_ptr);
-    qSwap(d_ptr->q_ptr, other.d_ptr->q_ptr);
+    std::swap(d_ptr, other.d_ptr);
+    std::swap(d_ptr->q_ptr, other.d_ptr->q_ptr);
 }
 
 bool QMidiInterface::isValid() const
@@ -64,7 +64,7 @@ int QMidiInterface::index() const
     return d_ptr->index;
 }
 
-QMidi::Api QMidiInterface::api() const
+QMidiApi QMidiInterface::api() const
 {
     return d_ptr->api;
 }
@@ -74,7 +74,7 @@ QString QMidiInterface::name() const
     return d_ptr->name;
 }
 
-QMidi::Directions QMidiInterface::directions() const
+QMidiDirections QMidiInterface::directions() const
 {
     return d_ptr->direction;
 }

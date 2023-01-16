@@ -13,9 +13,9 @@ public:
 
     QMidiPrivate() = default;
 
-    void init(QMidi::Api api = QMidi::UnspecifiedApi, QString clientName = {});
+    void init(QMidiApi api = UnspecifiedApi, QString clientName = {});
 
-    QMidiInterface interface(RtMidi& dev, QMidi::Directions dir, unsigned int port);
+    QMidiInterface interface(RtMidi& dev, QMidiDirections dir, unsigned int port);
 
     void send(const QByteArray& msg);
     void send(quint8 status);
@@ -29,20 +29,20 @@ public:
 
     bool hasError;
 
-    QMidi::Api api;
+    QMidiApi api;
 
     QString clientName;
 
     QMidiInterface ifaceIn;
     QMidiInterface ifaceOut;
 
-    QMidi::Directions openedDir;
+    QMidiDirections openedDir;
 
-    QMidi::MidiError error;
+    QMidiError error;
     QString errorString;
 
-    QMidi::SysExOptions sysExOpt;
-    QMidi::IgnoreOptions ignoreOpt;
+    QMidiSysExOptions sysExOpt;
+    QMidiIgnoreOptions ignoreOpt;
 
     QScopedPointer<RtMidiIn>  midiIn;
     QScopedPointer<RtMidiOut> midiOut;

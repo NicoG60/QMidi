@@ -19,8 +19,8 @@ public:
     QMidiInterface* q_ptr = nullptr;
 
     int index = -1;
-    QMidi::Api api = QMidi::UnspecifiedApi;
-    QMidi::Directions direction = QMidi::UnknownDirection;
+    QMidiApi api = UnspecifiedApi;
+    QMidiDirections direction = UnknownDirection;
     QString name;
 };
 

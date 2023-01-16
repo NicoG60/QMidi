@@ -2,6 +2,7 @@
 #define QMIDI_H
 
 #include "qmidi_global.h"
+#include "qmidiinterface.h"
 #include <QObject>
 
 class QMidiInterface;
@@ -14,173 +15,35 @@ class QMidiPrivate;
 
 #define QMIDI_DATA_MAX (0x7F)
 
-#define QMIDI_DECLARE_NOTE(Suffix) \
-    C_##Suffix      = 0, \
-    CSharp_##Suffix = 1, \
-    DFlat_##Suffix  = 1, \
-    D_##Suffix      = 2, \
-    DSharp_##Suffix = 3, \
-    EFlat_##Suffix  = 3, \
-    E_##Suffix      = 4, \
-    F_##Suffix      = 5, \
-    FSharp_##Suffix = 6, \
-    GFlat_##Suffix  = 6, \
-    G_##Suffix      = 7, \
-    GSharp_##Suffix = 8, \
-    AFlat_##Suffix  = 8, \
-    A_##Suffix      = 9, \
-    ASharp_##Suffix = 10, \
-    BFlat_##Suffix  = 10, \
-    B_##Suffix      = 11
-
-#define QMIDI_DECLARE_NEXT_NOTE(Suffix, Prec) \
-    C_##Suffix      = C_##Prec      + 12, \
-    CSharp_##Suffix = CSharp_##Prec + 12, \
-    DFlat_##Suffix  = DFlat_##Prec  + 12, \
-    D_##Suffix      = D_##Prec      + 12, \
-    DSharp_##Suffix = DSharp_##Prec + 12, \
-    EFlat_##Suffix  = EFlat_##Prec  + 12, \
-    E_##Suffix      = E_##Prec      + 12, \
-    F_##Suffix      = F_##Prec      + 12, \
-    FSharp_##Suffix = FSharp_##Prec + 12, \
-    GFlat_##Suffix  = GFlat_##Prec  + 12, \
-    G_##Suffix      = G_##Prec      + 12, \
-    GSharp_##Suffix = GSharp_##Prec + 12, \
-    AFlat_##Suffix  = AFlat_##Prec  + 12, \
-    A_##Suffix      = A_##Prec      + 12, \
-    ASharp_##Suffix = ASharp_##Prec + 12, \
-    BFlat_##Suffix  = BFlat_##Prec  + 12, \
-    B_##Suffix      = B_##Prec      + 12
-
 class QMIDI_EXPORT QMidi : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QMidi::Api api READ api WRITE setApi NOTIFY apiChanged)
+    Q_PROPERTY(QMidiApi api READ api WRITE setApi NOTIFY apiChanged)
     Q_PROPERTY(QString apiName READ apiName NOTIFY apiChanged)
     Q_PROPERTY(QString clientName READ clientName WRITE setClientName NOTIFY clientNameChanged)
     Q_PROPERTY(QMidiInterface inputInterface READ inputInterface WRITE setInputInterface NOTIFY inputInterfaceChanged)
     Q_PROPERTY(QMidiInterface outputInterface READ outputInterface WRITE setOutputInterface NOTIFY outputInterfaceChanged)
-    Q_PROPERTY(QMidi::SysExOptions systemExclusiveOptions READ systemExclusiveOptions WRITE setSystemExclusiveOptions)
-    Q_PROPERTY(QMidi::IgnoreOptions ignoreOptions READ ignoreOptions WRITE setIgnoreOptions)
+    Q_PROPERTY(QMidiSysExOptions systemExclusiveOptions READ systemExclusiveOptions WRITE setSystemExclusiveOptions)
+    Q_PROPERTY(QMidiIgnoreOptions ignoreOptions READ ignoreOptions WRITE setIgnoreOptions)
     Q_PROPERTY(bool isOpen READ isOpen NOTIFY isOpenChanged)
 
     Q_PROPERTY(QList<QMidiInterface> availableInputInterfaces READ availableInputInterfaces)
     Q_PROPERTY(QList<QMidiInterface> availableOutputInterfaces READ availableOutputInterfaces)
 
 public:
-    enum Api {
-        UnspecifiedApi,
-        DefaultApi = UnspecifiedApi,
-        CoreMidi,
-        ALSA,
-        JACK,
-        WindowsMM
-    };
-    Q_ENUM(Api);
-
-    enum Direction {
-        UnknownDirection,
-        Input,
-        Output
-    };
-    Q_ENUM(Direction);
-    Q_DECLARE_FLAGS(Directions, Direction);
-
-    enum MidiError
-    {
-        Warning,
-        DebugWarning,
-        UnspecifiedError,
-        NoDevicesFound,
-        InvalidDevice,
-        MemoryError,
-        InvalidParameter,
-        InvalidUse,
-        DriverError,
-        SystemError,
-        ThreadError
-    };
-    Q_ENUM(MidiError);
-
-    enum MidiStatus
-    {
-        NoteOffStatus         = 0x80,
-        NoteOnStatus          = 0x90,
-        KeyPressureStatus     = 0xA0,
-        ControlChangeStatus   = 0xB0,
-        ProgramChangeStatus   = 0xC0,
-        ChannelPressureStatus = 0xD0,
-        PitchBendStatus       = 0xE0,
-        SystemStatus          = 0xF0
-    };
-    Q_ENUM(MidiStatus);
-
-    enum MidiSystemMessage
-    {
-        SystemExclusiveMessage = SystemStatus + 0x00,
-        MidiTimeCodeMessage    = SystemStatus + 0x01,
-        SongPositionMessage    = SystemStatus + 0x02,
-        SongSelectMessage      = SystemStatus + 0x04,
-        // 4 + 5 Undefined
-        TuneRequestMessage     = SystemStatus + 0x06,
-        EndExclusiveMessage    = SystemStatus + 0x07,
-        TimingClockMessage     = SystemStatus + 0x08,
-        // 9 Undefined
-        StartMessage           = SystemStatus + 0x0A,
-        ContinueMessage        = SystemStatus + 0x0B,
-        StopMessage            = SystemStatus + 0x0C,
-        // D Undefined
-        ActiveSensingMessage   = SystemStatus + 0x0E,
-        ResetMessage           = SystemStatus + 0x0F
-    };
-    Q_ENUM(MidiSystemMessage);
-
-    enum MidiNote
-    {
-        QMIDI_DECLARE_NOTE(m1),
-        QMIDI_DECLARE_NEXT_NOTE(0, m1),
-        QMIDI_DECLARE_NEXT_NOTE(1, 0),
-        QMIDI_DECLARE_NEXT_NOTE(2, 1),
-        QMIDI_DECLARE_NEXT_NOTE(3, 2),
-        QMIDI_DECLARE_NEXT_NOTE(4, 3),
-        QMIDI_DECLARE_NEXT_NOTE(5, 4),
-        QMIDI_DECLARE_NEXT_NOTE(6, 5),
-        QMIDI_DECLARE_NEXT_NOTE(7, 6),
-        QMIDI_DECLARE_NEXT_NOTE(8, 7)
-    };
-    Q_ENUM(MidiNote);
-
-    enum SysExOptions
-    {
-        KeepUnchanged,
-        ConvertTo8Bits
-    };
-    Q_ENUM(SysExOptions);
-
-    enum IgnoreOption
-    {
-        AcceptAll   = 0x00,
-        IgnoreSysEx = 0x01,
-        IgnoreTime  = 0x02,
-        IgnoreSense = 0x04
-    };
-    Q_ENUM(IgnoreOption);
-    Q_DECLARE_FLAGS(IgnoreOptions, IgnoreOption);
-
-public:
     QMidi(QObject* parent = nullptr);
-    QMidi(Api api, QObject* parent = nullptr);
-    QMidi(Api api, const QString& clientName, QObject* parent = nullptr);
+    QMidi(QMidiApi api, QObject* parent = nullptr);
+    QMidi(QMidiApi api, const QString& clientName, QObject* parent = nullptr);
     ~QMidi() override;
 
-    Api api() const;
-    void setApi(Api api);
+    QMidiApi api() const;
+    void setApi(QMidiApi api);
 
     QString apiName() const;
 
     bool hasError() const;
-    MidiError error() const;
+    QMidiError error() const;
     QString errorString() const;
 
     QString clientName() const;
@@ -193,26 +56,26 @@ public:
     void setOutputInterface(const QMidiInterface& i);
 
     void open();
-    void openVirtual(const QString& name, Directions dir = UnknownDirection);
+    void openVirtual(const QString& name, QMidiDirections dir = UnknownDirection);
     bool isOpen();
-    Directions openedDirection();
+    QMidiDirections openedDirection();
 
     void close();
 
-    SysExOptions systemExclusiveOptions() const;
-    void setSystemExclusiveOptions(SysExOptions opt);
+    QMidiSysExOptions systemExclusiveOptions() const;
+    void setSystemExclusiveOptions(QMidiSysExOptions opt);
 
-    IgnoreOptions ignoreOptions() const;
-    void setIgnoreOptions(IgnoreOptions opt);
+    QMidiIgnoreOptions ignoreOptions() const;
+    void setIgnoreOptions(QMidiIgnoreOptions opt);
 
     QList<QMidiInterface> availableInputInterfaces();
     QList<QMidiInterface> availableOutputInterfaces();
     QList<QMidiInterface> availableInterfaces();
 
-    Q_INVOKABLE static QList<QMidi::Api> availableApi();
+    Q_INVOKABLE static QList<QMidiApi> availableApi();
 
-    static QString apiToString(Api api);
-    static QString errorToString(MidiError err);
+    static QString apiToString(QMidiApi api);
+    static QString errorToString(QMidiError err);
 
     static QString version();
     static QString commit();
@@ -281,10 +144,5 @@ private:
 
     QScopedPointer<QMidiPrivate> d_ptr;
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::Directions);
-Q_DECLARE_OPERATORS_FOR_FLAGS(QMidi::IgnoreOptions);
-
-#include "qmidiinterface.h"
 
 #endif // QMIDI_H

@@ -8,7 +8,7 @@
 #define _STR(x) #x
 #define STRINGIFY(x) _STR(x)
 
-void QMidiPrivate::init(QMidi::Api api, QString clientName)
+void QMidiPrivate::init(QMidiApi api, QString clientName)
 {
     try
     {
@@ -24,26 +24,26 @@ void QMidiPrivate::init(QMidi::Api api, QString clientName)
         midiIn->setCallback(&QMidiPrivate::midiCallback, this);
 
         this->hasError = false;
-        this->api = static_cast<QMidi::Api>(midiIn->getCurrentApi());
+        this->api = static_cast<QMidiApi>(midiIn->getCurrentApi());
         this->clientName = clientName;
-        this->openedDir = QMidi::UnknownDirection;
-        this->error = QMidi::UnspecifiedError;
+        this->openedDir = UnknownDirection;
+        this->error = UnspecifiedError;
 
-        sysExOpt = QMidi::KeepUnchanged;
-        ignoreOpt = QMidi::IgnoreSysEx | QMidi::IgnoreTime | QMidi::IgnoreSense;
+        sysExOpt = KeepUnchanged;
+        ignoreOpt = IgnoreSysEx | IgnoreTime | IgnoreSense;
 
         sysExBuf.clear();
     }
     catch(RtMidiError& e)
     {
         this->hasError = true;
-        this->error = static_cast<QMidi::MidiError>(e.getType());
+        this->error = static_cast<QMidiError>(e.getType());
         this->errorString = QString::fromStdString(e.getMessage());
         qWarning() << "QMidi:" << errorString;
     }
 }
 
-QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidi::Directions dir, unsigned int port)
+QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidiDirections dir, unsigned int port)
 {
     if(hasError)
     {
@@ -62,7 +62,7 @@ QMidiInterface QMidiPrivate::interface(RtMidi& dev, QMidi::Directions dir, unsig
 
 void QMidiPrivate::send(const QByteArray& msg)
 {
-    if(!openedDir.testFlag(QMidi::Output))
+    if(!openedDir.testFlag(Output))
     {
         qWarning() << "QMidi: try to send data with input only object. No effect";
         return;
@@ -74,7 +74,7 @@ void QMidiPrivate::send(const QByteArray& msg)
 
 void QMidiPrivate::send(quint8 status)
 {
-    if(!openedDir.testFlag(QMidi::Output))
+    if(!openedDir.testFlag(Output))
     {
         qWarning() << "QMidi: try to send data with input only object. No effect";
         return;
@@ -88,7 +88,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1)
 {
     static std::vector<unsigned char> v(2, 0);
 
-    if(!openedDir.testFlag(QMidi::Output))
+    if(!openedDir.testFlag(Output))
     {
         qWarning() << "QMidi: try to send data with input only object. No effect";
         return;
@@ -111,7 +111,7 @@ void QMidiPrivate::send(quint8 status, quint8 data1, quint8 data2)
 {
     static std::vector<unsigned char> v(3, 0);
 
-    if(!openedDir.testFlag(QMidi::Output))
+    if(!openedDir.testFlag(Output))
     {
         qWarning() << "QMidi: try to send data with input only object. No effect";
         return;
@@ -148,31 +148,31 @@ void QMidiPrivate::process(QByteArray data)
 
     switch(status & 0xF0)
     {
-    case QMidi::NoteOnStatus:
+    case NoteOnStatus:
         emit q->midiNoteOn(status & 0x0F, data[1], data[2]);
         return;
 
-    case QMidi::NoteOffStatus:
+    case NoteOffStatus:
         emit q->midiNoteOff(status & 0x0F, data[1], data[2]);
         return;
 
-    case QMidi::KeyPressureStatus:
+    case KeyPressureStatus:
         emit q->midiKeyPressure(status & 0x0F, data[1], data[2]);
         return;
 
-    case QMidi::ControlChangeStatus:
+    case ControlChangeStatus:
         emit q->midiControlChange(status & 0x0F, data[1], data[2]);
         return;
 
-    case QMidi::ProgramChangeStatus:
+    case ProgramChangeStatus:
         emit q->midiProgramChange(status & 0x0F, data[1]);
         return;
 
-    case QMidi::ChannelPressureStatus:
+    case ChannelPressureStatus:
         emit q->midiChannelPressure(status & 0x0F, data[1]);
         return;
 
-    case QMidi::PitchBendStatus:
+    case PitchBendStatus:
         emit q->midiPitchBend(status & 0x0F, QMIDI_COMBINE_14BITS(data[2], data[1]));
         return;
 
@@ -182,53 +182,53 @@ void QMidiPrivate::process(QByteArray data)
 
     switch(status)
     {
-    case QMidi::SystemExclusiveMessage:
-        if(data.back() == (char)QMidi::EndExclusiveMessage)
+    case SystemExclusiveMessage:
+        if(data.back() == (char)EndExclusiveMessage)
             processSysex(data);
         else
             sysExBuf = data;
         break;
 
-    case QMidi::MidiTimeCodeMessage:
+    case MidiTimeCodeMessage:
         emit q->midiTimeCode((data[1] >> 4) & 0x0F, data[1] & 0x0F);
         break;
 
-    case QMidi::SongPositionMessage:
+    case SongPositionMessage:
         emit q->midiSongPosition(QMIDI_COMBINE_14BITS(data[2], data[1]));
         break;
 
-    case QMidi::SongSelectMessage:
+    case SongSelectMessage:
         emit q->midiSongSelect(data[1]);
         break;
 
-    case QMidi::TuneRequestMessage:
+    case TuneRequestMessage:
         emit q->midiTuneRequest();
         break;
 
-    case QMidi::TimingClockMessage:
+    case TimingClockMessage:
         emit q->midiTimingClock();
         break;
 
-    case QMidi::StartMessage:
+    case StartMessage:
         emit q->midiStart();
         break;
 
-    case QMidi::ContinueMessage:
+    case ContinueMessage:
         emit q->midiContinue();
         break;
 
-    case QMidi::ActiveSensingMessage:
+    case ActiveSensingMessage:
         emit q->midiActiveSensing();
         break;
 
-    case QMidi::ResetMessage:
+    case ResetMessage:
         emit q->midiReset();
         break;
 
     default:
-    case QMidi::EndExclusiveMessage:
+    case EndExclusiveMessage:
         sysExBuf.append(data);
-        if(sysExBuf.back() == (char)QMidi::EndExclusiveMessage)
+        if(sysExBuf.back() == (char)EndExclusiveMessage)
             processSysex(sysExBuf);
         break;
     }
@@ -236,8 +236,8 @@ void QMidiPrivate::process(QByteArray data)
 
 void QMidiPrivate::processSysex(QByteArray data)
 {
-    Q_ASSERT(data.front() == (char)QMidi::SystemExclusiveMessage);
-    Q_ASSERT(data.back() == (char)QMidi::EndExclusiveMessage);
+    Q_ASSERT(data.front() == (char)SystemExclusiveMessage);
+    Q_ASSERT(data.back() == (char)EndExclusiveMessage);
 
     data.remove(0, 1);
     data.remove(data.size()-1, 1);
@@ -245,7 +245,7 @@ void QMidiPrivate::processSysex(QByteArray data)
     if(data.isEmpty())
         return;
 
-    if(sysExOpt == QMidi::ConvertTo8Bits)
+    if(sysExOpt == ConvertTo8Bits)
     {
         quint8 s1 = 1;
         quint8 s2 = 6;
@@ -294,7 +294,7 @@ void QMidiPrivate::errorCallback(RtMidiError::Type type, const std::string& text
 {
     auto that = reinterpret_cast<QMidiPrivate*>(data);
 
-    that->error       = static_cast<QMidi::MidiError>(type);
+    that->error       = static_cast<QMidiError>(type);
     that->errorString = QString::fromStdString(text);
     that->hasError    = true;
 
@@ -317,7 +317,7 @@ QMidi::QMidi(QObject* parent) :
     d->init();
 }
 
-QMidi::QMidi(Api api, QObject* parent) :
+QMidi::QMidi(QMidiApi api, QObject* parent) :
     QObject(parent),
     d_ptr(new QMidiPrivate)
 {
@@ -326,7 +326,7 @@ QMidi::QMidi(Api api, QObject* parent) :
     d->init(api);
 }
 
-QMidi::QMidi(Api api, const QString& clientName, QObject* parent) :
+QMidi::QMidi(QMidiApi api, const QString& clientName, QObject* parent) :
     QObject(parent),
     d_ptr(new QMidiPrivate)
 {
@@ -341,12 +341,12 @@ QMidi::~QMidi()
         close();
 }
 
-QMidi::Api QMidi::api() const
+QMidiApi QMidi::api() const
 {
     return d_func()->api;
 }
 
-void QMidi::setApi(Api api)
+void QMidi::setApi(QMidiApi api)
 {
     Q_D(QMidi);
 
@@ -373,7 +373,7 @@ bool QMidi::hasError() const
     return d_func()->hasError;
 }
 
-QMidi::MidiError QMidi::error() const
+QMidiError QMidi::error() const
 {
     return d_func()->error;
 }
@@ -420,7 +420,7 @@ void QMidi::setInputInterface(const QMidiInterface& i)
         return;
     }
 
-    if(!i.directions().testFlag(QMidi::Input))
+    if(!i.directions().testFlag(Input))
     {
         qWarning() << "QMidi: Setting an output interface on input. No effect.";
         return;
@@ -454,7 +454,7 @@ void QMidi::setOutputInterface(const QMidiInterface& i)
         return;
     }
 
-    if(!i.directions().testFlag(QMidi::Output))
+    if(!i.directions().testFlag(Output))
     {
         qWarning() << "QMidi: Setting an input interface on output. No effect.";
         return;
@@ -511,7 +511,7 @@ void QMidi::open()
         emit isOpenChanged();
 }
 
-void QMidi::openVirtual(const QString& name, Directions dir)
+void QMidi::openVirtual(const QString& name, QMidiDirections dir)
 {
     Q_D(QMidi);
 
@@ -577,7 +577,7 @@ bool QMidi::isOpen()
     return openedDirection() != UnknownDirection;
 }
 
-QMidi::Directions QMidi::openedDirection()
+QMidiDirections QMidi::openedDirection()
 {
     return d_func()->openedDir;
 }
@@ -601,22 +601,22 @@ void QMidi::close()
     }
 }
 
-QMidi::SysExOptions QMidi::systemExclusiveOptions() const
+QMidiSysExOptions QMidi::systemExclusiveOptions() const
 {
     return d_func()->sysExOpt;
 }
 
-void QMidi::setSystemExclusiveOptions(SysExOptions opt)
+void QMidi::setSystemExclusiveOptions(QMidiSysExOptions opt)
 {
     d_func()->sysExOpt = opt;
 }
 
-QMidi::IgnoreOptions QMidi::ignoreOptions() const
+QMidiIgnoreOptions QMidi::ignoreOptions() const
 {
     return d_func()->ignoreOpt;
 }
 
-void QMidi::setIgnoreOptions(IgnoreOptions opt)
+void QMidi::setIgnoreOptions(QMidiIgnoreOptions opt)
 {
     Q_D(QMidi);
 
@@ -661,20 +661,20 @@ QList<QMidiInterface> QMidi::availableInterfaces()
     return availableInputInterfaces() + availableOutputInterfaces();
 }
 
-QList<QMidi::Api> QMidi::availableApi()
+QList<QMidiApi> QMidi::availableApi()
 {
-    QList<QMidi::Api> r;
+    QList<QMidiApi> r;
     std::vector<RtMidi::Api> v;
 
     RtMidi::getCompiledApi(v);
 
     for(auto a : v)
-        r << static_cast<Api>(a);
+        r << static_cast<QMidiApi>(a);
 
     return r;
 }
 
-QString QMidi::apiToString(Api api)
+QString QMidi::apiToString(QMidiApi api)
 {
     switch(api)
     {
@@ -687,7 +687,7 @@ QString QMidi::apiToString(Api api)
     }
 }
 
-QString QMidi::errorToString(MidiError err)
+QString QMidi::errorToString(QMidiError err)
 {
     switch(err)
     {

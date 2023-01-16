@@ -2,10 +2,8 @@
 #define QMIDIINTERFACE_H
 
 #include "qmidi_global.h"
-#include "qmidi.h"
 
 #include <QObject>
-#include <QSharedDataPointer>
 
 class QMidiInterfacePrivate;
 class QMIDI_EXPORT QMidiInterface
@@ -13,9 +11,12 @@ class QMIDI_EXPORT QMidiInterface
     Q_GADGET
 
     Q_PROPERTY(int index READ index)
-    Q_PROPERTY(QMidi::Api api READ api)
+    Q_PROPERTY(QMidiApi api READ api)
     Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QMidi::Directions directions READ directions)
+    Q_PROPERTY(QMidiDirections directions READ directions)
+
+    Q_DECLARE_PRIVATE(QMidiInterface);
+    friend class QMidiPrivate;
 
 public:
     QMidiInterface();
@@ -33,15 +34,14 @@ public:
     bool isValid() const;
 
     int        index() const;
-    QMidi::Api api()  const;
+    QMidiApi api()  const;
     QString    name() const;
-    QMidi::Directions directions() const;
+    QMidiDirections directions() const;
 
     friend QDebug operator<<(QDebug debug, const QMidiInterface& iface);
 
-private:
-    Q_DECLARE_PRIVATE(QMidiInterface);
-    QScopedPointer<QMidiInterfacePrivate> d_ptr;
+protected:
+    std::unique_ptr<QMidiInterfacePrivate> d_ptr;
 };
 
 Q_DECLARE_METATYPE(QMidiInterface);
