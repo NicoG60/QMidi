@@ -10,6 +10,9 @@ execute_process(
     OUTPUT_VARIABLE GIT_VERSION
 )
 
+execute_process(COMMAND git submodule update --init third_party/rtmidi
+                WORKING_DIRECTORY ${QMIDI_SOURCE_DIR})
+
 #Configure the project
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 

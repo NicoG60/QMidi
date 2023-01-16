@@ -35,7 +35,7 @@ public:
     bool isValid() const;
 
     int        index() const;
-    QMidiApi api()  const;
+    QMidiApi   api()  const;
     QString    name() const;
     QMidiDirections directions() const;
 
