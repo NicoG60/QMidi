@@ -8,21 +8,15 @@ file(GLOB src *.cpp)
 execute_process(COMMAND git submodule update --init third_party/rtmidi
                 WORKING_DIRECTORY ${QMIDI_SOURCE_DIR})
 
-set(RtMidi_DIR ${QMIDI_SOURCE_DIR}/third_party/rtmidi)
-
-list(APPEND src ${RtMidi_DIR}/RtMidi.cpp ${RtMidi_DIR}/RtMidi.h)
-
 # define library target
 add_library(QMidi ${headers} ${src})
 target_link_libraries(QMidi PUBLIC Qt::Core)
+target_link_libraries(QMidi PRIVATE qmidi_third_party)
 target_include_directories(
     QMidi
     PUBLIC
         $<BUILD_INTERFACE:${header_path}>
         $<INSTALL_INTERFACE:${include_dest}>
-
-    PRIVATE
-        ${RtMidi_DIR}
 )
 target_compile_definitions(QMidi PRIVATE QMIDI_LIBRARY)
 target_compile_definitions(QMidi PRIVATE SOFT_VERSION=${PROJECT_VERSION})

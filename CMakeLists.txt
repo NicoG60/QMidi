@@ -48,6 +48,7 @@ if(${QMIDI_BUILD_TESTS})
 endif()
 
 # add subdirs
+add_subdirectory(third_party)
 add_subdirectory(src)
 
 if(${QMIDI_BUILD_TESTS})
