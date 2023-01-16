@@ -4,6 +4,7 @@
 #include "qmidi_global.h"
 
 #include <QObject>
+#include <memory>
 
 class QMidiInterfacePrivate;
 class QMIDI_EXPORT QMidiInterface

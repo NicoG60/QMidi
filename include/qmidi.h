@@ -4,6 +4,7 @@
 #include "qmidi_global.h"
 #include "qmidiinterface.h"
 #include <QObject>
+#include <memory>
 
 class QMidiInterface;
 class QMidiPrivate;
@@ -142,7 +143,7 @@ private:
     Q_DECLARE_PRIVATE(QMidi);
     Q_DISABLE_COPY(QMidi);
 
-    QScopedPointer<QMidiPrivate> d_ptr;
+    std::unique_ptr<QMidiPrivate> d_ptr;
 };
 
 #endif // QMIDI_H
