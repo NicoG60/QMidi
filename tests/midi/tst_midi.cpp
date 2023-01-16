@@ -37,7 +37,14 @@ midi::midi()
 
 void midi::test_ctor()
 {
-    QCOMPARE(_midi.api(), QMidi::CoreMidi);
+#ifdef Q_OS_MAC
+    QCOMPARE(_midi.api(), QMidiApi::CoreMidi);
+#elif Q_OS_WIN
+    QCOMPARE(_midi.api(), QMidiApi::WindowsMM);
+#else
+    if(_midi.api() != QMidiApi::ALSA && _midi.api() != QMidiApi::JACK)
+        QFAIL("Bad API for Linux");
+#endif
     QCOMPARE(_midi.clientName(), "QMidi Client");
     QVERIFY(!_midi.hasError());
 
@@ -47,10 +54,22 @@ void midi::test_ctor()
 
 void midi::test_api_client()
 {
-    _midi.setApi(QMidi::CoreMidi);
+#ifdef Q_OS_MAC
+    _midi.setApi(QMidiApi::CoreMidi);
+#elif Q_OS_WIN
+    _midi.setApi(QMidiApi::WindowsMM);
+#else
+    _midi.setApi(QMidiApi::ALSA);
+#endif
     _midi.setClientName("QMidiTest");
 
-    QCOMPARE(_midi.api(), QMidi::CoreMidi);
+#ifdef Q_OS_MAC
+    QCOMPARE(_midi.api(), QMidiApi::CoreMidi);
+#elif Q_OS_WIN
+    QCOMPARE(_midi.api(), QMidiApi::WindowsMM);
+#else
+    QCOMPARE(_midi.api(), QMidiApi::ALSA);
+#endif
     QCOMPARE(_midi.clientName(), "QMidiTest");
     QVERIFY(!_midi.hasError());
 }
@@ -63,39 +82,52 @@ void midi::test_midi_interfaces()
     {
         QCOMPARE(i.api(), _midi.api());
         QVERIFY(i.index() >= 0);
-        QCOMPARE(i.directions(), QMidi::Input);
+        QCOMPARE(i.directions(), QMidiDirection::Input);
     }
 
     for(auto& i : _midi.availableOutputInterfaces())
     {
         QCOMPARE(i.api(), _midi.api());
         QVERIFY(i.index() >= 0);
-        QCOMPARE(i.directions(), QMidi::Output);
+        QCOMPARE(i.directions(), QMidiDirection::Output);
     }
 }
 
 void midi::test_open()
 {
-    const auto& in  = _midi.availableInputInterfaces().constFirst();
-    const auto& out = _midi.availableOutputInterfaces().constFirst();
+    QMidiDirections dir = QMidiDirection::UnknownDirection;
+    if(!_midi.availableInputInterfaces().isEmpty())
+    {
+        const auto& in  = _midi.availableInputInterfaces().constFirst();
+        _midi.setInputInterface(in);
+        QCOMPARE(_midi.inputInterface(), in);
+        dir |= QMidiDirection::Input;
+    }
 
-    _midi.setInputInterface(in);
-    _midi.setOutputInterface(out);
+    if(!_midi.availableOutputInterfaces().isEmpty())
+    {
+        const auto& out = _midi.availableOutputInterfaces().constFirst();
+        _midi.setOutputInterface(out);
+        QCOMPARE(_midi.outputInterface(), out);
+        dir |= QMidiDirection::Output;
+    }
 
-    QCOMPARE(_midi.inputInterface(), in);
-    QCOMPARE(_midi.outputInterface(), out);
+    if(dir == QMidiDirection::UnknownDirection)
+        QSKIP("No available MIDI device to test");
+    else
+    {
+        _midi.open();
 
-    _midi.open();
+        QVERIFY(!_midi.hasError());
+        QVERIFY(_midi.isOpen());
+        QCOMPARE(_midi.openedDirection(), dir);
 
-    QVERIFY(!_midi.hasError());
-    QVERIFY(_midi.isOpen());
-    QCOMPARE(_midi.openedDirection(), QMidi::Input | QMidi::Output);
+        _midi.close();
 
-    _midi.close();
-
-    QVERIFY(!_midi.hasError());
-    QVERIFY(!_midi.isOpen());
-    QCOMPARE(_midi.openedDirection(), QMidi::UnknownDirection);
+        QVERIFY(!_midi.hasError());
+        QVERIFY(!_midi.isOpen());
+        QCOMPARE(_midi.openedDirection(), QMidiDirection::UnknownDirection);
+    }
 }
 
 void midi::test_virtual()
@@ -109,13 +141,13 @@ void midi::test_virtual()
     QCOMPARE(_midi.outputInterface().name(), "Virtual");
     QVERIFY(!_midi.hasError());
     QVERIFY(_midi.isOpen());
-    QCOMPARE(_midi.openedDirection(), QMidi::Input | QMidi::Output);
+    QCOMPARE(_midi.openedDirection(), QMidiDirection::Input | QMidiDirection::Output);
 
     _midi.close();
 
     QVERIFY(!_midi.hasError());
     QVERIFY(!_midi.isOpen());
-    QCOMPARE(_midi.openedDirection(), QMidi::UnknownDirection);
+    QCOMPARE(_midi.openedDirection(), QMidiDirection::UnknownDirection);
 #endif
 }
 

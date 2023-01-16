@@ -32,17 +32,28 @@ endif()
 
 option(QMIDI_BUILD_TESTS "Build the unit tests"  OFF)
 
-if(${QMIDI_BUILD_TESTS})
-    enable_testing()
-endif()
-
 #install var
 set(include_dest "include/QMidi-${QMidi_VERSION}")
 set(lib_dest "lib/QMidi-${QMidi_VERSION}")
 
+# setup deps
+if(NOT TARGET Qt::Core)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    set(Qt "Qt${QT_VERSION_MAJOR}")
+    find_package(${Qt} COMPONENTS Core REQUIRED)
+endif()
+
+if(${QMIDI_BUILD_TESTS})
+    find_package(${Qt} COMPONENTS Test REQUIRED)
+endif()
+
 # add subdirs
 add_subdirectory(src)
-add_subdirectory(tests)
+
+if(${QMIDI_BUILD_TESTS})
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # install
 install(FILES QMidi-config.cmake DESTINATION ${lib_dest})

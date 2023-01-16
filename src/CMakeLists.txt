@@ -5,13 +5,6 @@ file(GLOB headers ${header_path}/QM* ${header_path}/qm*)
 # set sources
 file(GLOB src *.cpp)
 
-# setup deps
-if(NOT TARGET Qt::Core)
-    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-    set(Qt "Qt${QT_VERSION_MAJOR}")
-    find_package(${Qt} COMPONENTS Core REQUIRED)
-endif()
-
 execute_process(COMMAND git submodule update --init third_party/rtmidi
                 WORKING_DIRECTORY ${QMIDI_SOURCE_DIR})
 

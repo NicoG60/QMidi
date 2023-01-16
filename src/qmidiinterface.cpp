@@ -51,7 +51,8 @@ bool QMidiInterface::operator!=(const QMidiInterface& other) const
 void QMidiInterface::swap(QMidiInterface& other) noexcept
 {
     std::swap(d_ptr, other.d_ptr);
-    std::swap(d_ptr->q_ptr, other.d_ptr->q_ptr);
+    if(other.d_ptr &&  d_ptr)
+        std::swap(d_ptr->q_ptr, other.d_ptr->q_ptr);
 }
 
 bool QMidiInterface::isValid() const
