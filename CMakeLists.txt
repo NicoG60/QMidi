@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(QMidi VERSION 1.1)
 set(QMIDI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+cmake_policy(SET CMP0077 NEW)
 
 execute_process(
     COMMAND git rev-parse --short HEAD
