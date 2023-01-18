@@ -515,6 +515,13 @@ void QMidi::openVirtual(const QString& name, QMidiDirections dir)
 {
     Q_D(QMidi);
 
+#ifdef Q_OS_WIN
+    d->error = QMidiError::InvalidUse;
+    d->errorString = "QMidi: Virtual Ports are not supported on Windows.";
+    qWarning() << d->errorString;
+    return;
+#endif
+
     if(dir == UnknownDirection)
         dir = Input | Output;
 

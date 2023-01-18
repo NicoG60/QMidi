@@ -54,7 +54,7 @@ void midi::test_ctor()
 
 void midi::test_api_client()
 {
-#ifdef defined(Q_OS_MAC)
+#if defined(Q_OS_MAC)
     _midi.setApi(QMidiApi::CoreMidi);
 #elif defined(Q_OS_WIN)
     _midi.setApi(QMidiApi::WindowsMM);
@@ -63,7 +63,7 @@ void midi::test_api_client()
 #endif
     _midi.setClientName("QMidiTest");
 
-#ifdef defined(Q_OS_MAC)
+#if defined(Q_OS_MAC)
     QCOMPARE(_midi.api(), QMidiApi::CoreMidi);
 #elif defined(Q_OS_WIN)
     QCOMPARE(_midi.api(), QMidiApi::WindowsMM);
