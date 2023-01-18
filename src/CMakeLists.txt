@@ -6,7 +6,7 @@ file(GLOB headers ${header_path}/QM* ${header_path}/qm*)
 file(GLOB src *.cpp)
 
 # define library target
-add_library(QMidi STATIC ${headers} ${src})
+add_library(QMidi ${headers} ${src})
 target_link_libraries(QMidi PUBLIC Qt::Core)
 target_link_libraries(QMidi PUBLIC rtmidi)
 target_include_directories(
